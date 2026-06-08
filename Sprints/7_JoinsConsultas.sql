@@ -2,21 +2,19 @@
    PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 7/7
    JOINS Y CONSULTAS DEL ENUNCIADO
    ============================================================================ */
--- A) TIPOS DE JOIN (cada uno dentro de un procedimiento)
 
--- INNER JOIN: profesores y las asignaturas que imparten (actualmente activos)
+-- INNER JOIN: profesores y las asignaturas que imparten (activas)
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_Join_Inner_ProfesorAsignatura
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT p.nombre_profesor AS profesor, a.nombre_asignatura AS asignatura, 
-           pa.antiguedad_asignatura AS antiguedad_anios
+    SELECT p.nombre_profesor AS profesor, a.nombre_asignatura AS asignatura,
+           a.antiguedad_profesor AS antiguedad_anios
     FROM Profesor p
-    INNER JOIN ProfesorAsignatura pa ON p.codigo_interno_profesor = pa.codigo_interno_profesor
-    INNER JOIN Asignatura a ON a.codigo_interno_asignatura = pa.codigo_interno_asignatura
-    WHERE pa.fecha_fin IS NULL
+    INNER JOIN Asignatura a ON p.codigo_interno_profesor = a.codigo_interno_profesor
+    WHERE a.fecha_fin_imparticion_profe IS NULL
     ORDER BY p.nombre_profesor;
 END
 GO
@@ -28,43 +26,43 @@ CREATE OR ALTER PROCEDURE sp_Join_Left_AsignaturaPrerrequisito
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT a.nombre_asignatura AS asignatura, 
-           ar.nombre_asignatura AS requiere_aprobar
+    SELECT a.nombre_asignatura AS asignatura,
+           pr.nombre_asignatura_prerequisito AS requiere_aprobar
     FROM Asignatura a
-    LEFT JOIN Prerrequisito p ON a.codigo_interno_asignatura = p.codigo_interno_asignatura
-    LEFT JOIN Asignatura ar ON ar.codigo_interno_asignatura = p.codigo_interno_asignatura_requerida
+    LEFT JOIN AsignaturaPrerrequisito ap ON a.codigo_interno_asignatura = ap.codigo_interno_asignatura
+    LEFT JOIN Prerrequisito pr ON pr.id_prerrequisito = ap.id_prerrequisito
     ORDER BY a.nombre_asignatura;
 END
 GO
 
--- RIGHT JOIN: asignaturas vistas desde el detalle de matricula
+-- RIGHT JOIN: asignaturas vistas desde la matricula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER PROCEDURE sp_Join_Right_DetalleAsignatura
+CREATE OR ALTER PROCEDURE sp_Join_Right_AsignaturaMatricula
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT d.id_matricula, a.nombre_asignatura AS asignatura
-    FROM DetalleMatricula d
-    RIGHT JOIN Asignatura a ON a.codigo_interno_asignatura = d.codigo_interno_asignatura
+    SELECT am.id_matricula, a.nombre_asignatura AS asignatura
+    FROM AsignaturaMatricula am
+    RIGHT JOIN Asignatura a ON a.codigo_interno_asignatura = am.codigo_interno_asignatura
     ORDER BY a.nombre_asignatura;
 END
 GO
 
--- FULL JOIN: estudiantes y matriculas (ambos lados completos)
+-- FULL JOIN: estudiantes y matriculas
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_Join_Full_EstudianteMatricula
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT e.nombre_estudiante AS estudiante, m.id_matricula, m.periodo, m.estado
+    SELECT e.nombre_estudiante AS estudiante, m.id_matricula, m.fecha_matricula, m.estado_matricula
     FROM Estudiante e
     FULL JOIN Matricula m ON e.id_estudiante = m.id_estudiante;
 END
 GO
 
--- CROSS JOIN: todas las combinaciones posibles de profesor y aula
+-- CROSS JOIN: profesores y aulas
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_Join_Cross_ProfesorAula
@@ -77,22 +75,22 @@ BEGIN
 END
 GO
 
--- SELF JOIN: cada asignatura junto con su asignatura requerida
+-- SELF JOIN: asignatura con su prerrequisito por codigo oficial
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_Join_Self_Prerrequisito
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT a.nombre_asignatura AS asignatura, 
-           ar.nombre_asignatura AS asignatura_requerida
-    FROM Prerrequisito pr
-    JOIN Asignatura a ON a.codigo_interno_asignatura = pr.codigo_interno_asignatura
-    JOIN Asignatura ar ON ar.codigo_interno_asignatura = pr.codigo_interno_asignatura_requerida;
+    SELECT a.nombre_asignatura AS asignatura,
+           pr.nombre_asignatura_prerequisito AS asignatura_requerida
+    FROM AsignaturaPrerrequisito ap
+    JOIN Asignatura a ON a.codigo_interno_asignatura = ap.codigo_interno_asignatura
+    JOIN Prerrequisito pr ON pr.id_prerrequisito = ap.id_prerrequisito;
 END
 GO
 
--- LEFT EXCLUSIVE JOIN: asignaturas que NO tienen prerrequisitos
+-- LEFT EXCLUSIVE JOIN: asignaturas sin prerrequisitos
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_Join_LeftExclusive_SinPrerrequisito
@@ -101,8 +99,8 @@ BEGIN
     SET NOCOUNT ON;
     SELECT a.nombre_asignatura AS asignatura
     FROM Asignatura a
-    LEFT JOIN Prerrequisito p ON a.codigo_interno_asignatura = p.codigo_interno_asignatura
-    WHERE p.id_prerrequisito IS NULL
+    LEFT JOIN AsignaturaPrerrequisito ap ON a.codigo_interno_asignatura = ap.codigo_interno_asignatura
+    WHERE ap.id_asignatura_prerrequisito IS NULL
     ORDER BY a.nombre_asignatura;
 END
 GO
@@ -122,63 +120,36 @@ BEGIN
 END
 GO
 
-
--- FULL OUTER EXCLUSIVE JOIN: estudiantes sin matricula Y matriculas sin estudiante
-USE InstitutoTECNIC;
-GO
-CREATE OR ALTER PROCEDURE sp_Join_FullOuterExclusive_SinRelacion
-AS
-BEGIN
-    SET NOCOUNT ON;
-    -- Estudiantes sin matricula
-    SELECT e.nombre_estudiante AS nombre, 'Estudiante sin matricula' AS tipo
-    FROM Estudiante e
-    LEFT JOIN Matricula m ON e.id_estudiante = m.id_estudiante
-    WHERE m.id_matricula IS NULL
-    
-    UNION
-    
-    -- Matriculas sin estudiante (no deberia ocurrir por FK, pero se incluye)
-    SELECT CONCAT('Matricula ID: ', m.id_matricula) AS nombre, 'Matricula sin estudiante' AS tipo
-    FROM Matricula m
-    LEFT JOIN Estudiante e ON e.id_estudiante = m.id_estudiante
-    WHERE e.id_estudiante IS NULL
-    ORDER BY tipo, nombre;
-END
-GO
--- ============================================================================
--- B) CONSULTAS QUE PIDE EL ENUNCIADO DEL CASO
--- ============================================================================
-
--- 1) ¿Qué asignaturas se imparten en un bloque horario determinado?
+-- 1) Asignaturas en un bloque horario determinado
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_AsignaturasPorBloque
-    @dia_semana    NVARCHAR(15),
-    @bloque        INT,
-    @anio_academico INT = NULL
+    @dia_semana NVARCHAR(15),
+    @num_bloque INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF @anio_academico IS NULL
-        SET @anio_academico = YEAR(GETDATE());
-    
+    IF @dia_semana NOT IN (N'Lunes', N'Martes', N'Miércoles', N'Jueves', N'Viernes', N'Sábado')
+       OR @num_bloque NOT BETWEEN 1 AND 6
+    BEGIN
+        RAISERROR('Error: Dia o bloque no valido.', 16, 1);
+        RETURN;
+    END
     SELECT a.nombre_asignatura AS asignatura,
            p.nombre_profesor AS profesor,
            au.nombre_aula AS aula,
-           h.dia_semana, h.bloque, h.anio_academico
+           h.dia_semana, h.num_bloque, h.hora_inicio_bloque, h.hora_fin_bloque
     FROM Horario h
-    JOIN ProfesorAsignatura pa ON h.id_profesor_asignatura = pa.id_profesor_asignatura
-    JOIN Asignatura a ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
-    JOIN Profesor p ON pa.codigo_interno_profesor = p.codigo_interno_profesor
-    JOIN Aula au ON h.numero_aula = au.numero_aula
-    WHERE h.dia_semana = @dia_semana AND h.bloque = @bloque
-      AND h.anio_academico = @anio_academico
+    JOIN HorarioAsignatura ha ON h.id_horario = ha.id_horario
+    JOIN Asignatura a ON ha.codigo_interno_asignatura = a.codigo_interno_asignatura
+    JOIN Profesor p ON a.codigo_interno_profesor = p.codigo_interno_profesor
+    JOIN Aula au ON a.id_aula = au.id_aula
+    WHERE h.dia_semana = @dia_semana AND h.num_bloque = @num_bloque
     ORDER BY a.nombre_asignatura;
 END
 GO
 
--- 2) ¿Qué profesor imparte determinada asignatura? (actualmente)
+-- 2) Profesor que imparte una asignatura (activo)
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_ProfesorDeAsignatura
@@ -186,35 +157,17 @@ CREATE OR ALTER PROCEDURE sp_ProfesorDeAsignatura
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT p.codigo_interno_profesor, p.nombre_profesor, 
+    SELECT p.codigo_interno_profesor, p.nombre_profesor, p.apellido1_profesor,
            p.correo_profesor, p.telefono_profesor,
-           pa.fecha_inicio, pa.antiguedad_asignatura AS antiguedad_anios
-    FROM ProfesorAsignatura pa
-    JOIN Profesor p ON p.codigo_interno_profesor = pa.codigo_interno_profesor
-    WHERE pa.codigo_interno_asignatura = @codigo_interno_asignatura
-      AND pa.fecha_fin IS NULL;
+           a.fecha_inicio_imparticion_profe, a.antiguedad_profesor AS antiguedad_anios
+    FROM Asignatura a
+    JOIN Profesor p ON p.codigo_interno_profesor = a.codigo_interno_profesor
+    WHERE a.codigo_interno_asignatura = @codigo_interno_asignatura
+      AND a.fecha_fin_imparticion_profe IS NULL;
 END
 GO
 
--- 2b) Historial de profesores que han impartido una asignatura
-USE InstitutoTECNIC;
-GO
-CREATE OR ALTER PROCEDURE sp_HistorialProfesoresAsignatura
-    @codigo_interno_asignatura INT
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SELECT p.nombre_profesor, pa.fecha_inicio, pa.fecha_fin,
-           pa.antiguedad_asignatura AS antiguedad_anios,
-           CASE WHEN pa.fecha_fin IS NULL THEN 'Activo' ELSE 'Inactivo' END AS estado
-    FROM ProfesorAsignatura pa
-    JOIN Profesor p ON p.codigo_interno_profesor = pa.codigo_interno_profesor
-    WHERE pa.codigo_interno_asignatura = @codigo_interno_asignatura
-    ORDER BY pa.fecha_inicio DESC;
-END
-GO
-
--- 3) ¿Qué asignaturas requieren prerrequisitos? (y cuántos)
+-- 3) Asignaturas con prerrequisitos
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_AsignaturasConPrerrequisitos
@@ -222,46 +175,44 @@ AS
 BEGIN
     SET NOCOUNT ON;
     SELECT a.codigo_interno_asignatura, a.nombre_asignatura AS asignatura,
-           COUNT(pr.id_prerrequisito) AS cantidad_prerrequisitos,
-           STRING_AGG(ar.nombre_asignatura, ', ') AS lista_prerrequisitos
+           COUNT(ap.id_asignatura_prerrequisito) AS cantidad_prerrequisitos,
+           STRING_AGG(pr.nombre_asignatura_prerequisito, ', ') AS lista_prerrequisitos
     FROM Asignatura a
-    JOIN Prerrequisito pr ON pr.codigo_interno_asignatura = a.codigo_interno_asignatura
-    JOIN Asignatura ar ON ar.codigo_interno_asignatura = pr.codigo_interno_asignatura_requerida
-    WHERE pr.estado = N'Activo'
+    JOIN AsignaturaPrerrequisito ap ON ap.codigo_interno_asignatura = a.codigo_interno_asignatura
+    JOIN Prerrequisito pr ON pr.id_prerrequisito = ap.id_prerrequisito
+    WHERE pr.estado_prerrequisito = N'Activo'
     GROUP BY a.codigo_interno_asignatura, a.nombre_asignatura
     ORDER BY a.nombre_asignatura;
 END
 GO
 
--- 4) ¿Qué aulas están vacías en un día y bloque específico?
+-- 4) Aulas vacias en un dia y bloque
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_AulasVacias
-    @dia_semana     NVARCHAR(15),
-    @bloque         INT,
-    @anio_academico INT = NULL
+    @dia_semana NVARCHAR(15),
+    @num_bloque INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF @anio_academico IS NULL
-        SET @anio_academico = YEAR(GETDATE());
-    
-    SELECT au.numero_aula, s.nombre_sede, au.nombre_aula, 
+    SELECT au.numero_aula, s.nombre_sede, au.nombre_aula,
            au.capacidad, au.metros_cuadrados, au.tiene_proyector
     FROM Aula au
     JOIN Sede s ON au.id_sede = s.id_sede
     WHERE NOT EXISTS (
-        SELECT 1 FROM Horario h
-        WHERE h.numero_aula = au.numero_aula
+        SELECT 1
+        FROM Horario h
+        JOIN HorarioAsignatura ha ON h.id_horario = ha.id_horario
+        JOIN Asignatura a ON ha.codigo_interno_asignatura = a.codigo_interno_asignatura
+        WHERE a.id_aula = au.id_aula
           AND h.dia_semana = @dia_semana
-          AND h.bloque = @bloque
-          AND h.anio_academico = @anio_academico
+          AND h.num_bloque = @num_bloque
     )
     ORDER BY s.nombre_sede, au.numero_aula;
 END
 GO
 
--- 5) ¿Qué asignaturas se imparten en un ciclo específico y curso determinado?
+-- 5) Asignaturas por ciclo y curso
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_AsignaturasPorCicloCurso
@@ -270,80 +221,44 @@ CREATE OR ALTER PROCEDURE sp_AsignaturasPorCicloCurso
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT ci.nombre_ciclo AS ciclo, cu.nombre_curso AS curso, cu.nivel,
-           a.codigo_interno_asignatura, a.codigo_oficial, 
-           a.nombre_asignatura AS asignatura, a.duracion_horas,
+    SELECT ci.nombre_ciclo AS ciclo, cu.nivel_curso AS curso,
+           a.codigo_interno_asignatura, a.codigo_oficial,
+           a.nombre_asignatura AS asignatura, a.duracion_horas_asignatura,
            p.nombre_profesor AS profesor_titular
     FROM Asignatura a
-    JOIN Curso cu ON cu.id_curso = a.id_curso
+    JOIN AsignaturaCurso ac ON ac.codigo_interno_asignatura = a.codigo_interno_asignatura
+    JOIN Curso cu ON cu.id_curso = ac.id_curso
     JOIN Ciclo ci ON ci.codigo_interno_ciclo = cu.codigo_interno_ciclo
-    LEFT JOIN ProfesorAsignatura pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura AND pa.fecha_fin IS NULL
-    LEFT JOIN Profesor p ON p.codigo_interno_profesor = pa.codigo_interno_profesor
+    LEFT JOIN Profesor p ON p.codigo_interno_profesor = a.codigo_interno_profesor
     WHERE ci.codigo_interno_ciclo = @codigo_interno_ciclo
       AND (@id_curso IS NULL OR cu.id_curso = @id_curso)
-    ORDER BY cu.nivel, a.nombre_asignatura;
+    ORDER BY cu.nivel_curso, a.nombre_asignatura;
 END
 GO
 
--- ============================================================================
--- C) CONSULTAS ADICIONALES
--- ============================================================================
-
--- 6) Profesores y su historial
-USE InstitutoTECNIC;
-GO
-CREATE OR ALTER PROCEDURE sp_HistorialProfesores
-AS
-BEGIN
-    SET NOCOUNT ON;
-    SELECT p.nombre_profesor AS profesor, a.nombre_asignatura AS asignatura,
-           pa.fecha_inicio, pa.fecha_fin,
-           CASE WHEN pa.fecha_fin IS NULL THEN 'Actualmente la da' 
-                ELSE CONCAT('La dio de ', YEAR(pa.fecha_inicio), ' a ', YEAR(pa.fecha_fin)) 
-           END AS periodo,
-           pa.antiguedad_asignatura AS antiguedad_anios
-    FROM ProfesorAsignatura pa
-    JOIN Profesor p ON p.codigo_interno_profesor = pa.codigo_interno_profesor
-    JOIN Asignatura a ON a.codigo_interno_asignatura = pa.codigo_interno_asignatura
-    ORDER BY p.nombre_profesor, pa.fecha_inicio DESC;
-END
-GO
-
--- 7) Horario completo del año actual
+-- Horario completo
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_HorarioCompleto
-    @anio_academico INT = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF @anio_academico IS NULL
-        SET @anio_academico = YEAR(GETDATE());
-    
-    SELECT h.dia_semana, h.bloque, a.nombre_aula AS aula,
-           p.nombre_profesor AS profesor, asig.nombre_asignatura AS asignatura,
-           c.nombre_curso AS curso, ci.nombre_ciclo AS ciclo
+    SELECT h.dia_semana, h.num_bloque, h.hora_inicio_bloque, h.hora_fin_bloque,
+           au.nombre_aula AS aula, p.nombre_profesor AS profesor,
+           a.nombre_asignatura AS asignatura, cu.nivel_curso AS curso, ci.nombre_ciclo AS ciclo
     FROM Horario h
-    JOIN ProfesorAsignatura pa ON h.id_profesor_asignatura = pa.id_profesor_asignatura
-    JOIN Profesor p ON pa.codigo_interno_profesor = p.codigo_interno_profesor
-    JOIN Asignatura asig ON pa.codigo_interno_asignatura = asig.codigo_interno_asignatura
-    JOIN Aula a ON h.numero_aula = a.numero_aula
-    JOIN Curso c ON h.id_curso = c.id_curso
-    JOIN Ciclo ci ON c.codigo_interno_ciclo = ci.codigo_interno_ciclo
-    WHERE h.anio_academico = @anio_academico
-    ORDER BY 
-        CASE h.dia_semana
-            WHEN 'Lunes' THEN 1
-            WHEN 'Martes' THEN 2
-            WHEN 'Miércoles' THEN 3
-            WHEN 'Jueves' THEN 4
-            WHEN 'Viernes' THEN 5
-            WHEN 'Sábado' THEN 6
-        END, h.bloque;
+    JOIN HorarioAsignatura ha ON h.id_horario = ha.id_horario
+    JOIN Asignatura a ON ha.codigo_interno_asignatura = a.codigo_interno_asignatura
+    JOIN Profesor p ON a.codigo_interno_profesor = p.codigo_interno_profesor
+    JOIN Aula au ON a.id_aula = au.id_aula
+    LEFT JOIN AsignaturaCurso ac ON ac.codigo_interno_asignatura = a.codigo_interno_asignatura
+    LEFT JOIN Curso cu ON ac.id_curso = cu.id_curso
+    LEFT JOIN Ciclo ci ON cu.codigo_interno_ciclo = ci.codigo_interno_ciclo
+    ORDER BY h.dia_semana, h.num_bloque;
 END
 GO
 
--- 8) Asignaturas que cursa un estudiante actualmente
+-- Asignaturas de un estudiante (matricula activa)
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_AsignaturasPorEstudiante
@@ -351,139 +266,85 @@ CREATE OR ALTER PROCEDURE sp_AsignaturasPorEstudiante
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT e.nombre_estudiante, a.nombre_asignatura, m.periodo
-    FROM DetalleMatricula dm
-    JOIN Matricula m ON dm.id_matricula = m.id_matricula
+    SELECT e.nombre_estudiante, a.nombre_asignatura, m.fecha_matricula
+    FROM AsignaturaMatricula am
+    JOIN Matricula m ON am.id_matricula = m.id_matricula
     JOIN Estudiante e ON m.id_estudiante = e.id_estudiante
-    JOIN Asignatura a ON dm.codigo_interno_asignatura = a.codigo_interno_asignatura
-    WHERE m.id_estudiante = @id_estudiante AND m.estado = N'Activa'
+    JOIN Asignatura a ON am.codigo_interno_asignatura = a.codigo_interno_asignatura
+    WHERE m.id_estudiante = @id_estudiante AND m.estado_matricula = N'Activa'
     ORDER BY a.nombre_asignatura;
 END
 GO
 
--- 9) Profesores que son tutores
+-- Tutores por curso
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_TutoresPorCurso
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT p.nombre_profesor AS tutor, c.nombre_curso AS curso,
+    SELECT p.nombre_profesor AS tutor, cu.nivel_curso AS curso,
            ci.nombre_ciclo AS ciclo, t.antiguedad_tutor AS antiguedad_anios,
            t.fecha_inicio_tutoria
     FROM Tutoria t
     JOIN Profesor p ON t.codigo_interno_profesor = p.codigo_interno_profesor
-    JOIN Curso c ON t.id_curso = c.id_curso
-    JOIN Ciclo ci ON c.codigo_interno_ciclo = ci.codigo_interno_ciclo
+    JOIN Curso cu ON t.id_curso = cu.id_curso
+    JOIN Ciclo ci ON cu.codigo_interno_ciclo = ci.codigo_interno_ciclo
     WHERE t.fecha_fin_tutoria IS NULL
-    ORDER BY ci.nombre_ciclo, c.nivel;
+    ORDER BY ci.nombre_ciclo, cu.nivel_curso;
 END
 GO
 
--- 10) Resumen de asistencia de un estudiante
+-- Resumen de asistencia
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_ResumenAsistenciaEstudiante
     @id_estudiante INT,
-    @fecha_desde DATE = NULL,
-    @fecha_hasta DATE = NULL
+    @fecha_desde DATETIME = NULL,
+    @fecha_hasta DATETIME = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
     SELECT e.nombre_estudiante, a.nombre_asignatura,
-           COUNT(CASE WHEN asis.estado = N'Presente' THEN 1 END) AS presentes,
-           COUNT(CASE WHEN asis.estado = N'Ausente' THEN 1 END) AS ausentes,
-           COUNT(CASE WHEN asis.estado = N'Tardía' THEN 1 END) AS tardias,
-           COUNT(CASE WHEN asis.estado = N'Justificada' THEN 1 END) AS justificadas,
+           COUNT(CASE WHEN asis.estado_asistencia = N'Presente' THEN 1 END) AS presentes,
+           COUNT(CASE WHEN asis.estado_asistencia = N'Ausente' THEN 1 END) AS ausentes,
+           COUNT(CASE WHEN asis.estado_asistencia = N'Tardía' THEN 1 END) AS tardias,
+           COUNT(CASE WHEN asis.estado_asistencia = N'Justificada' THEN 1 END) AS justificadas,
            COUNT(*) AS total_clases
     FROM Asistencia asis
     JOIN Estudiante e ON asis.id_estudiante = e.id_estudiante
     JOIN Asignatura a ON asis.codigo_interno_asignatura = a.codigo_interno_asignatura
     WHERE asis.id_estudiante = @id_estudiante
-      AND (@fecha_desde IS NULL OR asis.fecha >= @fecha_desde)
-      AND (@fecha_hasta IS NULL OR asis.fecha <= @fecha_hasta)
+      AND (@fecha_desde IS NULL OR asis.fecha_asistencia >= @fecha_desde)
+      AND (@fecha_hasta IS NULL OR asis.fecha_asistencia <= @fecha_hasta)
     GROUP BY e.nombre_estudiante, a.nombre_asignatura;
 END
 GO
 
--- ============================================================================
--- D) EJECUCION DE DEMOSTRACION
--- ============================================================================
-
--- Joins
+-- DEMOSTRACION
 USE InstitutoTECNIC;
 GO
 EXEC sp_Join_Inner_ProfesorAsignatura;
 GO
-
-USE InstitutoTECNIC;
-GO
 EXEC sp_Join_Left_AsignaturaPrerrequisito;
-GO
-
-USE InstitutoTECNIC;
 GO
 EXEC sp_Join_Self_Prerrequisito;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_Join_LeftExclusive_SinPrerrequisito;
-GO
-
--- Consultas del enunciado
-USE InstitutoTECNIC;
-GO
-EXEC sp_AsignaturasPorBloque @dia_semana = N'Lunes', @bloque = 1;
-GO
-
-USE InstitutoTECNIC;
+EXEC sp_AsignaturasPorBloque @dia_semana = N'Lunes', @num_bloque = 1;
 GO
 EXEC sp_ProfesorDeAsignatura @codigo_interno_asignatura = 4;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_HistorialProfesoresAsignatura @codigo_interno_asignatura = 3;
-GO
-
-USE InstitutoTECNIC;
-GO
 EXEC sp_AsignaturasConPrerrequisitos;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_AulasVacias @dia_semana = N'Lunes', @bloque = 1;
-GO
-
-USE InstitutoTECNIC;
+EXEC sp_AulasVacias @dia_semana = N'Lunes', @num_bloque = 1;
 GO
 EXEC sp_AsignaturasPorCicloCurso @codigo_interno_ciclo = 4, @id_curso = 7;
 GO
-
--- Consultas adicionales
-USE InstitutoTECNIC;
-GO
-EXEC sp_HistorialProfesores;
-GO
-
-USE InstitutoTECNIC;
-GO
 EXEC sp_HorarioCompleto;
-GO
-
-USE InstitutoTECNIC;
 GO
 EXEC sp_AsignaturasPorEstudiante @id_estudiante = 1;
 GO
-
-USE InstitutoTECNIC;
-GO
 EXEC sp_TutoresPorCurso;
-GO
-
-USE InstitutoTECNIC;
 GO
 EXEC sp_ResumenAsistenciaEstudiante @id_estudiante = 2;
 GO

@@ -32,11 +32,12 @@ USE InstitutoTECNIC;
 GO
 GRANT SELECT ON Asignatura TO rol_profesor;
 GRANT SELECT ON Horario TO rol_profesor;
+GRANT SELECT ON HorarioAsignatura TO rol_profesor;
 GRANT SELECT ON Estudiante TO rol_profesor;
 GRANT SELECT ON Curso TO rol_profesor;
 GRANT SELECT ON Ciclo TO rol_profesor;
 GRANT SELECT ON Aula TO rol_profesor;
-GRANT SELECT, INSERT, UPDATE ON HistorialAcademico TO rol_profesor;
+GRANT SELECT, INSERT, UPDATE ON NotaFinal TO rol_profesor;
 GRANT SELECT, INSERT, UPDATE ON Asistencia TO rol_profesor;
 GO
 
@@ -44,23 +45,27 @@ USE InstitutoTECNIC;
 GO
 GRANT SELECT ON Asignatura TO rol_estudiante;
 GRANT SELECT ON Horario TO rol_estudiante;
-GRANT SELECT ON HistorialAcademico TO rol_estudiante;
+GRANT SELECT ON HorarioAsignatura TO rol_estudiante;
+GRANT SELECT ON NotaFinal TO rol_estudiante;
 GO
 
 -- PROCEDIMIENTOS DE SEGURIDAD
 USE InstitutoTECNIC;
 GO
 CREATE OR ALTER PROCEDURE sp_ValidarLogin
-    @nombre_usuario NVARCHAR(50),
+    @nombre_usuario NVARCHAR(20),
     @contrasena     VARCHAR(100)
 AS
 BEGIN
     SET NOCOUNT ON;
-    SELECT id_usuario, nombre_usuario, rol, correo
-    FROM Usuario
-    WHERE nombre_usuario = @nombre_usuario
-      AND activo = 1
-      AND contrasena = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena), 2);
+    SELECT u.id_usuario, u.nombre_usuario, u.rol,
+           COALESCE(p.correo_profesor, e.correo_estudiante) AS correo
+    FROM Usuario u
+    LEFT JOIN Profesor p ON u.codigo_interno_profesor = p.codigo_interno_profesor
+    LEFT JOIN Estudiante e ON u.id_estudiante = e.id_estudiante
+    WHERE u.nombre_usuario = @nombre_usuario
+      AND u.activo = 1
+      AND u.contrasena_usuario = CONVERT(NVARCHAR(255), HASHBYTES('SHA2_256', @contrasena), 2);
     IF @@ROWCOUNT = 0
         RAISERROR('Error: Usuario o contraseña incorrectos.', 16, 1);
 END
@@ -78,14 +83,14 @@ BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM Usuario 
         WHERE id_usuario = @id_usuario 
-          AND contrasena = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena_actual), 2)
+          AND contrasena_usuario = CONVERT(NVARCHAR(255), HASHBYTES('SHA2_256', @contrasena_actual), 2)
     )
     BEGIN
         RAISERROR('Error: Contraseña actual incorrecta.', 16, 1);
         RETURN;
     END
     UPDATE Usuario
-    SET contrasena = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena_nueva), 2)
+    SET contrasena_usuario = CONVERT(NVARCHAR(255), HASHBYTES('SHA2_256', @contrasena_nueva), 2)
     WHERE id_usuario = @id_usuario;
     RAISERROR('Contraseña cambiada correctamente.', 10, 1);
 END
