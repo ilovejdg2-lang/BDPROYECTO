@@ -9,14 +9,15 @@ GO
 CREATE TABLE Sede
 (
     id_sede        INT           IDENTITY(1,1) NOT NULL,
-    nombre_sede    NVARCHAR(100) NOT NULL,
-    direccion_sede NVARCHAR(200) NOT NULL,
+    nombre_sede    VARCHAR(100) NOT NULL,
+    direccion_sede VARCHAR(200) NOT NULL,
     CONSTRAINT PK_Sede        PRIMARY KEY (id_sede),
     CONSTRAINT UQ_Sede_nombre UNIQUE (nombre_sede)
 ) ON FG_Academico;
 GO
 EXEC sp_help Sede;
 GO
+
 
 -- TABLA: Aula (FG_Academico)
 USE InstitutoTECNIC;
@@ -25,9 +26,9 @@ CREATE TABLE Aula
 (
     id_aula          INT           IDENTITY(1,1) NOT NULL,
     numero_aula      INT           NOT NULL,
-    nombre_aula      NVARCHAR(100) NOT NULL,
+    nombre_aula      VARCHAR(100) NOT NULL,
     capacidad        INT           NOT NULL,
-    metros_cuadrados DECIMAL(8,2)  NOT NULL,
+    metros_cuadrados FLOAT  NOT NULL,
     tiene_proyector  BIT           NOT NULL DEFAULT (0),
     id_sede          INT           NOT NULL,
     CONSTRAINT PK_Aula             PRIMARY KEY (id_aula),
@@ -47,11 +48,11 @@ GO
 CREATE TABLE Ciclo
 (
     codigo_interno_ciclo INT           IDENTITY(1,1) NOT NULL,
-    nombre_ciclo         NVARCHAR(100) NOT NULL,
-    categoria            NVARCHAR(50)  NOT NULL,
+    nombre_ciclo         VARCHAR(100) NOT NULL,
+    categoria            VARCHAR(50)  NOT NULL,
     CONSTRAINT PK_Ciclo           PRIMARY KEY (codigo_interno_ciclo),
     CONSTRAINT UQ_Ciclo_nombre    UNIQUE (nombre_ciclo),
-    CONSTRAINT CK_Ciclo_categoria CHECK (categoria IN (N'Grado Medio', N'Grado Superior', N'Bachillerato Técnico'))
+    CONSTRAINT CK_Ciclo_categoria CHECK (categoria IN ('Grado Medio', 'Grado Superior', 'Bachillerato Técnico'))
 ) ON FG_Academico;
 GO
 EXEC sp_help Ciclo;
@@ -63,12 +64,12 @@ GO
 CREATE TABLE Curso
 (
     id_curso             INT IDENTITY(1,1) NOT NULL,
-    nivel_curso          NVARCHAR(25) NOT NULL,
+    nivel_curso          VARCHAR(25) NOT NULL,
     codigo_interno_ciclo INT NOT NULL,
     CONSTRAINT PK_Curso           PRIMARY KEY (id_curso),
     CONSTRAINT FK_Curso_Ciclo     FOREIGN KEY (codigo_interno_ciclo) REFERENCES Ciclo(codigo_interno_ciclo),
     CONSTRAINT UQ_Curso_nivel_ciclo UNIQUE (codigo_interno_ciclo, nivel_curso),
-    CONSTRAINT CK_Curso_nivel       CHECK (nivel_curso IN (N'Primer Año', N'Segundo Año', N'Tercer Año'))
+    CONSTRAINT CK_Curso_nivel       CHECK (nivel_curso IN ('Primer Año', 'Segundo Año', 'Tercer Año'))
 ) ON FG_Academico;
 GO
 EXEC sp_help Curso;
@@ -81,13 +82,13 @@ CREATE TABLE Profesor
 (
     codigo_interno_profesor INT           IDENTITY(1,1) NOT NULL,
     cedula_profesor         VARCHAR(20)   NOT NULL,
-    nombre_profesor         NVARCHAR(50)  NOT NULL,
-    apellido1_profesor      NVARCHAR(50)  NOT NULL,
-    apellido2_profesor      NVARCHAR(50)  NULL,
-    correo_profesor         NVARCHAR(100) NULL,
+    nombre_profesor         VARCHAR(50)  NOT NULL,
+    apellido1_profesor      VARCHAR(50)  NOT NULL,
+    apellido2_profesor      VARCHAR(50)  NULL,
+    correo_profesor         VARCHAR(100) NULL,
     telefono_profesor       VARCHAR(20)   NULL,
     seguro_social_profesor  VARCHAR(30)   NULL,
-    direccion               NVARCHAR(200) NULL,
+    direccion               VARCHAR(200) NULL,
     CONSTRAINT PK_Profesor        PRIMARY KEY (codigo_interno_profesor),
     CONSTRAINT UQ_Profesor_cedula UNIQUE (cedula_profesor),
     CONSTRAINT UQ_Profesor_correo UNIQUE (correo_profesor)
@@ -96,14 +97,14 @@ GO
 EXEC sp_help Profesor;
 GO
 
--- TABLA: Asignatura (FG_Academico)
+-- TABLA: Asignatura (FG_Academico) PENDIENTE DE REVISIÓN PARA AJUSTES DE Y CHECK CONSTRAINTS
 USE InstitutoTECNIC;
 GO
 CREATE TABLE Asignatura
 (
     codigo_interno_asignatura      INT           IDENTITY(1,1) NOT NULL,
     codigo_oficial                 VARCHAR(20)   NOT NULL,
-    nombre_asignatura              NVARCHAR(100) NOT NULL,
+    nombre_asignatura              VARCHAR(100) NOT NULL,
     duracion_horas_asignatura      INT           NOT NULL,
     antiguedad_profesor            INT           NULL,
     fecha_inicio_imparticion_profe DATE          NULL,
@@ -129,11 +130,11 @@ CREATE TABLE Horario
     id_horario         INT IDENTITY(1,1) NOT NULL,
     hora_inicio_bloque TIME         NOT NULL,
     hora_fin_bloque    TIME         NOT NULL,
-    dia_semana         NVARCHAR(15) NOT NULL,
+    dia_semana         VARCHAR(15) NOT NULL,
     num_bloque         INT          NOT NULL,
     CONSTRAINT PK_Horario        PRIMARY KEY (id_horario),
     CONSTRAINT CK_Horario_bloque CHECK (num_bloque BETWEEN 1 AND 6),
-    CONSTRAINT CK_Horario_dia    CHECK (dia_semana IN (N'Lunes', N'Martes', N'Miércoles', N'Jueves', N'Viernes', N'Sábado')),
+    CONSTRAINT CK_Horario_dia    CHECK (dia_semana IN ('Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado')),
     CONSTRAINT CK_Horario_horas  CHECK (hora_fin_bloque > hora_inicio_bloque),
     CONSTRAINT UQ_Horario_slot   UNIQUE (dia_semana, num_bloque)
 ) ON FG_Operaciones;
@@ -199,10 +200,10 @@ CREATE TABLE Prerrequisito
 (
     id_prerrequisito                       INT IDENTITY(1,1) NOT NULL,
     codigo_oficial_asignatura_prerequerida VARCHAR(20)   NULL,
-    estado_prerrequisito                   NVARCHAR(20)  NOT NULL DEFAULT (N'Activo'),
-    nombre_asignatura_prerequisito         NVARCHAR(100) NULL,
+    estado_prerrequisito                   VARCHAR(20)  NOT NULL DEFAULT ('Activo'),
+    nombre_asignatura_prerequisito         VARCHAR(100) NULL,
     CONSTRAINT PK_Prerrequisito     PRIMARY KEY (id_prerrequisito),
-    CONSTRAINT CK_Prerrequisito_estado CHECK (estado_prerrequisito IN (N'Activo', N'Inactivo', N'Eliminado'))
+    CONSTRAINT CK_Prerrequisito_estado CHECK (estado_prerrequisito IN ('Activo', 'Inactivo', 'Eliminado'))
 ) ON FG_Operaciones;
 GO
 EXEC sp_help Prerrequisito;
@@ -232,16 +233,17 @@ CREATE TABLE Estudiante
 (
     id_estudiante            INT IDENTITY(1,1) NOT NULL,
     cedula_estudiante        VARCHAR(20)   NOT NULL,
-    nombre_estudiante        NVARCHAR(50)  NOT NULL,
-    apellido1_estudiante     NVARCHAR(50)  NOT NULL,
-    apellido2_estudiante     NVARCHAR(50)  NULL,
-    correo_estudiante        NVARCHAR(100) NULL,
+    nombre_estudiante        VARCHAR(50)  NOT NULL,
+    apellido1_estudiante     VARCHAR(50)  NOT NULL,
+    apellido2_estudiante     VARCHAR(50)  NULL,
+    correo_estudiante        VARCHAR(100) NULL,
     telefono_estudiante      VARCHAR(20)   NULL,
     seguro_social_estudiante VARCHAR(30)   NULL,
     fecha_nacimiento         DATE          NULL,
     fecha_ingreso            DATE          NOT NULL DEFAULT (CAST(GETDATE() AS DATE)),
     CONSTRAINT PK_Estudiante        PRIMARY KEY (id_estudiante),
     CONSTRAINT UQ_Estudiante_cedula UNIQUE (cedula_estudiante),
+    CONSTRAINT UQ_Estudiante_correo UNIQUE (correo_estudiante),
     CONSTRAINT CK_Est_fechas        CHECK (fecha_nacimiento IS NULL OR fecha_ingreso > fecha_nacimiento)
 ) ON FG_Academico;
 GO
@@ -255,11 +257,11 @@ CREATE TABLE Matricula
 (
     id_matricula     INT IDENTITY(1,1) NOT NULL,
     fecha_matricula  DATETIME     NOT NULL DEFAULT (GETDATE()),
-    estado_matricula NVARCHAR(20) NOT NULL DEFAULT (N'Activa'),
+    estado_matricula VARCHAR(20) NOT NULL DEFAULT ('Activa'),
     id_estudiante    INT          NOT NULL,
     CONSTRAINT PK_Matricula      PRIMARY KEY (id_matricula),
     CONSTRAINT FK_Mat_Estudiante FOREIGN KEY (id_estudiante) REFERENCES Estudiante(id_estudiante),
-    CONSTRAINT CK_Mat_estado     CHECK (estado_matricula IN (N'Activa', N'Anulada', N'Finalizada'))
+    CONSTRAINT CK_Mat_estado     CHECK (estado_matricula IN ('Activa', 'Anulada', 'Finalizada'))
 ) ON FG_Operaciones;
 GO
 EXEC sp_help Matricula;
@@ -288,7 +290,7 @@ GO
 CREATE TABLE Periodo
 (
     id_periodo     INT IDENTITY(1,1) NOT NULL,
-    nombre_periodo NVARCHAR(50) NOT NULL,
+    nombre_periodo VARCHAR(50) NOT NULL,
     annio          INT          NOT NULL,
     CONSTRAINT PK_Periodo        PRIMARY KEY (id_periodo),
     CONSTRAINT UQ_Periodo_nombre UNIQUE (nombre_periodo),
@@ -304,8 +306,8 @@ GO
 CREATE TABLE NotaFinal
 (
     id_nota_final             INT IDENTITY(1,1) NOT NULL,
-    promedio_final            DECIMAL(5,2) NULL,
-    estado_nota               NVARCHAR(20) NOT NULL,
+    promedio_final            FLOAT NULL,
+    estado_nota               VARCHAR(20) NOT NULL,
     id_estudiante             INT NOT NULL,
     codigo_interno_asignatura INT NOT NULL,
     id_periodo                INT NOT NULL,
@@ -314,8 +316,8 @@ CREATE TABLE NotaFinal
     CONSTRAINT FK_NF_Asignatura   FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
     CONSTRAINT FK_NF_Periodo      FOREIGN KEY (id_periodo) REFERENCES Periodo(id_periodo),
     CONSTRAINT CK_NF_promedio     CHECK (promedio_final IS NULL OR (promedio_final >= 0 AND promedio_final <= 100)),
-    CONSTRAINT CK_NF_estado       CHECK (estado_nota IN (N'Aprobado', N'Reprobado', N'En curso')),
-    CONSTRAINT CK_NF_estado_prom  CHECK ((estado_nota = N'En curso' AND promedio_final IS NULL) OR (estado_nota IN (N'Aprobado', N'Reprobado') AND promedio_final IS NOT NULL)),
+    CONSTRAINT CK_NF_estado       CHECK (estado_nota IN ('Aprobado', 'Reprobado', 'En curso')),
+    CONSTRAINT CK_NF_estado_prom  CHECK ((estado_nota = 'En curso' AND promedio_final IS NULL) OR (estado_nota IN ('Aprobado', 'Reprobado') AND promedio_final IS NOT NULL)),
     CONSTRAINT UQ_NF_unico        UNIQUE (id_estudiante, codigo_interno_asignatura, id_periodo)
 ) ON FG_Operaciones;
 GO
@@ -328,17 +330,16 @@ GO
 CREATE TABLE Asistencia
 (
     id_asistencia             INT IDENTITY(1,1) NOT NULL,
-    fecha_asistencia          DATETIME     NOT NULL DEFAULT (GETDATE()),
-    estado_asistencia         NVARCHAR(15) NOT NULL,
-    justificacion             NVARCHAR(200) NULL,
+    fecha_asistencia          DATE     NOT NULL DEFAULT (GETDATE()),
+    estado_asistencia         VARCHAR(15) NOT NULL,
+    justificacion             VARCHAR(200) NULL,
     id_estudiante             INT NOT NULL,
     codigo_interno_asignatura INT NOT NULL,
-    fecha_asistencia_dia      AS CAST(fecha_asistencia AS DATE) PERSISTED,
     CONSTRAINT PK_Asistencia      PRIMARY KEY (id_asistencia),
     CONSTRAINT FK_Asis_Estudiante FOREIGN KEY (id_estudiante) REFERENCES Estudiante(id_estudiante),
     CONSTRAINT FK_Asis_Asignatura FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
-    CONSTRAINT CK_Asis_estado     CHECK (estado_asistencia IN (N'Presente', N'Ausente', N'Tardía', N'Justificada')),
-    CONSTRAINT UQ_Asis_unica      UNIQUE (id_estudiante, codigo_interno_asignatura, fecha_asistencia_dia)
+    CONSTRAINT CK_Asis_estado     CHECK (estado_asistencia IN ('Presente', 'Ausente', 'Tardía', 'Justificada')),
+    CONSTRAINT UQ_Asis_unica      UNIQUE (id_estudiante, codigo_interno_asignatura, fecha_asistencia)
 ) ON FG_Operaciones;
 GO
 EXEC sp_help Asistencia;
@@ -372,16 +373,16 @@ GO
 CREATE TABLE Usuario
 (
     id_usuario              INT IDENTITY(1,1) NOT NULL,
-    nombre_usuario          NVARCHAR(20)  NOT NULL,
-    contrasena_usuario      NVARCHAR(255) NOT NULL,
-    rol                     NVARCHAR(25)  NOT NULL DEFAULT (N'Usuario'),
+    nombre_usuario          VARCHAR(20)  NOT NULL,
+    contrasena_usuario      VARCHAR(255) NOT NULL,
+    rol                     VARCHAR(25)  NOT NULL DEFAULT ('Usuario'),
     activo                  BIT           NOT NULL DEFAULT (1),
     fecha_creacion          DATETIME      NOT NULL DEFAULT (GETDATE()),
     id_estudiante           INT           NULL,
     codigo_interno_profesor INT           NULL,
     CONSTRAINT PK_Usuario          PRIMARY KEY (id_usuario),
     CONSTRAINT UQ_Usuario_nombre   UNIQUE (nombre_usuario),
-    CONSTRAINT CK_Usuario_rol      CHECK (rol IN (N'Administrador', N'Profesor', N'Estudiante', N'Usuario')),
+    CONSTRAINT CK_Usuario_rol      CHECK (rol IN ('Administrador', 'Profesor', 'Estudiante', 'Usuario')),
     CONSTRAINT FK_Usuario_Estudiante FOREIGN KEY (id_estudiante) REFERENCES Estudiante(id_estudiante),
     CONSTRAINT FK_Usuario_Profesor   FOREIGN KEY (codigo_interno_profesor) REFERENCES Profesor(codigo_interno_profesor)
 );
@@ -395,7 +396,7 @@ GO
 CREATE TABLE Bitacora
 (
     id_bitacora    INT IDENTITY(1,1) NOT NULL,
-    accion         NVARCHAR(200) NOT NULL,
+    accion         VARCHAR(200) NOT NULL,
     fecha_bitacora DATETIME      NOT NULL DEFAULT (GETDATE()),
     ip_equipo      VARCHAR(50)   NULL,
     id_usuario     INT           NOT NULL,
