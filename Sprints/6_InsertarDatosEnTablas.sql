@@ -1,9 +1,7 @@
-/* ============================================================================
+﻿/* ============================================================================
    PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 6/7
    INSERCION DE DATOS (VIA PROCEDIMIENTOS ALMACENADOS)
    ============================================================================ */
-
-   SELECT * FROM Profesor
 
 -- SEDES
 USE InstitutoTECNIC;
@@ -42,11 +40,11 @@ GO
 -- PROFESORES
 USE InstitutoTECNIC;
 GO
-EXEC sp_Profesor_Insertar @cedula_profesor = '1-1001-0001', @nombre_profesor = 'José Angel', @apellido1_profesor = 'Jiménez', @apellido2_profesor = 'Torrentes', @correo_profesor = 'jose.jimenez@tecnic.cr', @telefono_profesor = '+506 8888-1001', @seguro_social_profesor = 'SS-001', @direccion = 'Liberia';
-EXEC sp_Profesor_Insertar @cedula_profesor = '1-1002-0002', @nombre_profesor = 'Raymond', @apellido1_profesor = 'Pérez', @apellido2_profesor = 'Meza', @correo_profesor = 'raymond.perez@tecnic.cr', @telefono_profesor = '+506 8888-1002', @seguro_social_profesor = 'SS-002', @direccion = 'Nicoya';
-EXEC sp_Profesor_Insertar @cedula_profesor = '1-1003-0003', @nombre_profesor = 'Alex', @apellido1_profesor = 'Villegas', @apellido2_profesor = 'Carranza', @correo_profesor = 'alex.villegas@tecnic.cr', @telefono_profesor = '+506 8888-1003', @seguro_social_profesor = 'SS-003', @direccion = 'Sarapiquí';
-EXEC sp_Profesor_Insertar @cedula_profesor = '1-1004-0004', @nombre_profesor = 'Gloriana', @apellido1_profesor = 'Peña', @apellido2_profesor = 'Ramírez', @correo_profesor = 'gloriana.pena@tecnic.cr', @telefono_profesor = '+506 8888-1004', @seguro_social_profesor = 'SS-004', @direccion = 'Santa Cruz';
-EXEC sp_Profesor_Insertar @cedula_profesor = '1-1005-0005', @nombre_profesor = 'Dinia', @apellido1_profesor = 'Medina', @apellido2_profesor = 'Baltodano', @correo_profesor = 'dinia.medina@tecnic.cr', @telefono_profesor = '+506 8888-1005', @seguro_social_profesor = 'SS-005', @direccion = 'Heredia';
+EXEC sp_Profesor_Insertar @cedula_profesor = '1-1001-0001', @nombre_profesor = 'José Angel', @apellido1_profesor = 'Jiménez', @apellido2_profesor = 'Torrentes', @correo_profesor = 'jose.jimenez@tecnic.cr', @telefono_profesor = '+506 8888-1001', @seguro_social_profesor = 1001, @direccion = 'Liberia';
+EXEC sp_Profesor_Insertar @cedula_profesor = '1-1002-0002', @nombre_profesor = 'Raymond', @apellido1_profesor = 'Pérez', @apellido2_profesor = 'Meza', @correo_profesor = 'raymond.perez@tecnic.cr', @telefono_profesor = '+506 8888-1002', @seguro_social_profesor = 1002, @direccion = 'Nicoya';
+EXEC sp_Profesor_Insertar @cedula_profesor = '1-1003-0003', @nombre_profesor = 'Alex', @apellido1_profesor = 'Villegas', @apellido2_profesor = 'Carranza', @correo_profesor = 'alex.villegas@tecnic.cr', @telefono_profesor = '+506 8888-1003', @seguro_social_profesor = 1003, @direccion = 'Sarapiquí';
+EXEC sp_Profesor_Insertar @cedula_profesor = '1-1004-0004', @nombre_profesor = 'Gloriana', @apellido1_profesor = 'Peña', @apellido2_profesor = 'Ramírez', @correo_profesor = 'gloriana.pena@tecnic.cr', @telefono_profesor = '+506 8888-1004', @seguro_social_profesor = 1004, @direccion = 'Santa Cruz';
+EXEC sp_Profesor_Insertar @cedula_profesor = '1-1005-0005', @nombre_profesor = 'Dinia', @apellido1_profesor = 'Medina', @apellido2_profesor = 'Baltodano', @correo_profesor = 'dinia.medina@tecnic.cr', @telefono_profesor = '+506 8888-1005', @seguro_social_profesor = 1005, @direccion = 'Heredia';
 GO
 
 -- AULAS
@@ -189,15 +187,15 @@ GO
 -- ESTUDIANTES
 USE InstitutoTECNIC;
 GO
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0001-0001', @nombre_estudiante = 'Samir', @apellido1_estudiante = 'Campos', @apellido2_estudiante = 'Díaz', @seguro_social_estudiante = 'SS-006', @correo_estudiante = 'samir.campos@est.tecnic.cr', @telefono_estudiante = '+506 7000-0001', @fecha_nacimiento = '2005-03-12', @fecha_ingreso = '2025-01-15';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0002-0002', @nombre_estudiante = 'Fátima', @apellido1_estudiante = 'Carrillo', @apellido2_estudiante = 'García', @seguro_social_estudiante = 'SS-007', @correo_estudiante = 'fatima.carrillo@est.tecnic.cr', @telefono_estudiante = '+506 7000-0002', @fecha_nacimiento = '2006-05-20', @fecha_ingreso = '2025-01-15';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0003-0003', @nombre_estudiante = 'María del Mar', @apellido1_estudiante = 'Díaz', @apellido2_estudiante = 'Ruiz', @seguro_social_estudiante = 'SS-008', @correo_estudiante = 'maria.diaz@est.tecnic.cr', @telefono_estudiante = '+506 7000-0003', @fecha_nacimiento = '2005-11-08', @fecha_ingreso = '2025-01-15';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0004-0004', @nombre_estudiante = 'Brayan José', @apellido1_estudiante = 'Pérez', @apellido2_estudiante = 'Balladares', @seguro_social_estudiante = 'SS-009', @correo_estudiante = 'brayan.perez@est.tecnic.cr', @telefono_estudiante = '+506 7000-0004', @fecha_nacimiento = '2004-09-15', @fecha_ingreso = '2024-01-20';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0005-0005', @nombre_estudiante = 'Yeisson Alberto', @apellido1_estudiante = 'Villalobos', @apellido2_estudiante = 'Toruño', @seguro_social_estudiante = 'SS-010', @correo_estudiante = 'yeisson.villalobos@est.tecnic.cr', @telefono_estudiante = '+506 7000-0005', @fecha_nacimiento = '2005-07-25', @fecha_ingreso = '2025-01-15';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0006-0006', @nombre_estudiante = 'Juanito', @apellido1_estudiante = 'Pérez', @apellido2_estudiante = 'González', @seguro_social_estudiante = 'SS-011', @correo_estudiante = 'juanito.perez@est.tecnic.cr', @telefono_estudiante = '+506 7000-0006', @fecha_nacimiento = '2005-02-10', @fecha_ingreso = '2024-01-15';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0007-0007', @nombre_estudiante = 'Panchita', @apellido1_estudiante = 'Rodríguez', @apellido2_estudiante = 'Solano', @seguro_social_estudiante = 'SS-012', @correo_estudiante = 'panchita.rodriguez@est.tecnic.cr', @telefono_estudiante = '+506 7000-0007', @fecha_nacimiento = '2006-07-18', @fecha_ingreso = '2025-01-15';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0008-0008', @nombre_estudiante = 'Pedrito', @apellido1_estudiante = 'Morales', @apellido2_estudiante = 'Chacón', @seguro_social_estudiante = 'SS-013', @correo_estudiante = 'pedrito.morales@est.tecnic.cr', @telefono_estudiante = '+506 7000-0008', @fecha_nacimiento = '2004-11-25', @fecha_ingreso = '2024-01-20';
-EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0009-0009', @nombre_estudiante = 'Alvarito', @apellido1_estudiante = 'Quesada', @apellido2_estudiante = 'Jiménez', @seguro_social_estudiante = 'SS-014', @correo_estudiante = 'alvarito.quesada@est.tecnic.cr', @telefono_estudiante = '+506 7000-0009', @fecha_nacimiento = '2005-09-03', @fecha_ingreso = '2025-01-15';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0001-0001', @nombre_estudiante = 'Samir', @apellido1_estudiante = 'Campos', @apellido2_estudiante = 'Díaz', @seguro_social_estudiante = 2006, @correo_estudiante = 'samir.campos@est.tecnic.cr', @telefono_estudiante = '+506 7000-0001', @fecha_nacimiento = '2005-03-12', @fecha_ingreso = '2025-01-15';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0002-0002', @nombre_estudiante = 'Fátima', @apellido1_estudiante = 'Carrillo', @apellido2_estudiante = 'García', @seguro_social_estudiante = 2007, @correo_estudiante = 'fatima.carrillo@est.tecnic.cr', @telefono_estudiante = '+506 7000-0002', @fecha_nacimiento = '2006-05-20', @fecha_ingreso = '2025-01-15';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0003-0003', @nombre_estudiante = 'María del Mar', @apellido1_estudiante = 'Díaz', @apellido2_estudiante = 'Ruiz', @seguro_social_estudiante = 2008, @correo_estudiante = 'maria.diaz@est.tecnic.cr', @telefono_estudiante = '+506 7000-0003', @fecha_nacimiento = '2005-11-08', @fecha_ingreso = '2025-01-15';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0004-0004', @nombre_estudiante = 'Brayan José', @apellido1_estudiante = 'Pérez', @apellido2_estudiante = 'Balladares', @seguro_social_estudiante = 2009, @correo_estudiante = 'brayan.perez@est.tecnic.cr', @telefono_estudiante = '+506 7000-0004', @fecha_nacimiento = '2004-09-15', @fecha_ingreso = '2024-01-20';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0005-0005', @nombre_estudiante = 'Yeisson Alberto', @apellido1_estudiante = 'Villalobos', @apellido2_estudiante = 'Toruño', @seguro_social_estudiante = 2010, @correo_estudiante = 'yeisson.villalobos@est.tecnic.cr', @telefono_estudiante = '+506 7000-0005', @fecha_nacimiento = '2005-07-25', @fecha_ingreso = '2025-01-15';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0006-0006', @nombre_estudiante = 'Juanito', @apellido1_estudiante = 'Pérez', @apellido2_estudiante = 'González', @seguro_social_estudiante = 2011, @correo_estudiante = 'juanito.perez@est.tecnic.cr', @telefono_estudiante = '+506 7000-0006', @fecha_nacimiento = '2005-02-10', @fecha_ingreso = '2024-01-15';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0007-0007', @nombre_estudiante = 'Panchita', @apellido1_estudiante = 'Rodríguez', @apellido2_estudiante = 'Solano', @seguro_social_estudiante = 2012, @correo_estudiante = 'panchita.rodriguez@est.tecnic.cr', @telefono_estudiante = '+506 7000-0007', @fecha_nacimiento = '2006-07-18', @fecha_ingreso = '2025-01-15';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0008-0008', @nombre_estudiante = 'Pedrito', @apellido1_estudiante = 'Morales', @apellido2_estudiante = 'Chacón', @seguro_social_estudiante = 2013, @correo_estudiante = 'pedrito.morales@est.tecnic.cr', @telefono_estudiante = '+506 7000-0008', @fecha_nacimiento = '2004-11-25', @fecha_ingreso = '2024-01-20';
+EXEC sp_Estudiante_Insertar @cedula_estudiante = '5-0009-0009', @nombre_estudiante = 'Alvarito', @apellido1_estudiante = 'Quesada', @apellido2_estudiante = 'Jiménez', @seguro_social_estudiante = 2014, @correo_estudiante = 'alvarito.quesada@est.tecnic.cr', @telefono_estudiante = '+506 7000-0009', @fecha_nacimiento = '2005-09-03', @fecha_ingreso = '2025-01-15';
 GO
 
 -- PERIODOS
@@ -219,22 +217,23 @@ EXEC sp_NotaFinal_Insertar @promedio_final = 80.00, @estado_nota = 'Aprobado', @
 EXEC sp_NotaFinal_Insertar @promedio_final = 90.00, @estado_nota = 'Aprobado', @id_estudiante = 6, @codigo_interno_asignatura = 3, @id_periodo = 1;
 EXEC sp_NotaFinal_Insertar @promedio_final = 87.00, @estado_nota = 'Aprobado', @id_estudiante = 6, @codigo_interno_asignatura = 9, @id_periodo = 1;
 EXEC sp_NotaFinal_Insertar @promedio_final = 91.00, @estado_nota = 'Aprobado', @id_estudiante = 6, @codigo_interno_asignatura = 13, @id_periodo = 2;
+EXEC sp_NotaFinal_Insertar @promedio_final = 83.00, @estado_nota = 'Aprobado', @id_estudiante = 8, @codigo_interno_asignatura = 9, @id_periodo = 2;
 GO
 
--- MATRICULAS
+-- MATRICULAS (id_sede: 1=Liberia, 2=Nicoya, 3=Sarapiqui, 5=Heredia)
 USE InstitutoTECNIC;
 GO
-EXEC sp_Matricula_Insertar @id_estudiante = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 2, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 3, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 4, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 5, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 6, @fecha_matricula = '2024-02-01', @estado_matricula = 'Finalizada';
-EXEC sp_Matricula_Insertar @id_estudiante = 6, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 7, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 8, @fecha_matricula = '2024-02-01', @estado_matricula = 'Finalizada';
-EXEC sp_Matricula_Insertar @id_estudiante = 8, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
-EXEC sp_Matricula_Insertar @id_estudiante = 9, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 1, @id_sede = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 2, @id_sede = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 3, @id_sede = 2, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 4, @id_sede = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 5, @id_sede = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 6, @id_sede = 1, @fecha_matricula = '2024-02-01', @estado_matricula = 'Finalizada';
+EXEC sp_Matricula_Insertar @id_estudiante = 6, @id_sede = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 7, @id_sede = 2, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 8, @id_sede = 3, @fecha_matricula = '2024-02-01', @estado_matricula = 'Finalizada';
+EXEC sp_Matricula_Insertar @id_estudiante = 8, @id_sede = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
+EXEC sp_Matricula_Insertar @id_estudiante = 9, @id_sede = 1, @fecha_matricula = '2025-02-01', @estado_matricula = 'Activa';
 GO
 
 -- ASIGNATURA-MATRICULA
@@ -242,16 +241,15 @@ USE InstitutoTECNIC;
 GO
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 4, @id_matricula = 1;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 10, @id_matricula = 1;
-EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 12, @id_matricula = 1;
+EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 16, @id_matricula = 1;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 15, @id_matricula = 1;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 2, @id_matricula = 2;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 14, @id_matricula = 2;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 18, @id_matricula = 2;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 5, @id_matricula = 3;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 6, @id_matricula = 3;
-EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 15, @id_matricula = 3;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 9, @id_matricula = 4;
-EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 19, @id_matricula = 4;
+EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 10, @id_matricula = 4;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 11, @id_matricula = 5;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 15, @id_matricula = 5;
 EXEC sp_AsignaturaMatricula_Insertar @codigo_interno_asignatura = 3, @id_matricula = 6;
@@ -274,8 +272,8 @@ GO
 USE InstitutoTECNIC;
 GO
 EXEC sp_NotaFinal_Insertar @promedio_final = 92.00, @estado_nota = 'Aprobado', @id_estudiante = 3, @codigo_interno_asignatura = 5, @id_periodo = 1;
-EXEC sp_NotaFinal_Insertar @promedio_final = 65.00, @estado_nota = 'Reprobado', @id_estudiante = 4, @codigo_interno_asignatura = 7, @id_periodo = 1;
-EXEC sp_NotaFinal_Insertar @promedio_final = 88.00, @estado_nota = 'Aprobado', @id_estudiante = 4, @codigo_interno_asignatura = 7, @id_periodo = 2;
+EXEC sp_NotaFinal_Insertar @promedio_final = 65.00, @estado_nota = 'Reprobado', @id_estudiante = 4, @codigo_interno_asignatura = 9, @id_periodo = 1;
+EXEC sp_NotaFinal_Insertar @promedio_final = 88.00, @estado_nota = 'Aprobado', @id_estudiante = 4, @codigo_interno_asignatura = 9, @id_periodo = 2;
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 5, @codigo_interno_asignatura = 11, @id_periodo = 3;
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 6, @codigo_interno_asignatura = 4, @id_periodo = 3;
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 6, @codigo_interno_asignatura = 10, @id_periodo = 3;
@@ -286,11 +284,10 @@ EXEC sp_NotaFinal_Insertar @promedio_final = 79.00, @estado_nota = 'Aprobado', @
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 8, @codigo_interno_asignatura = 9, @id_periodo = 3;
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 8, @codigo_interno_asignatura = 10, @id_periodo = 3;
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 9, @codigo_interno_asignatura = 11, @id_periodo = 3;
-EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 1, @codigo_interno_asignatura = 12, @id_periodo = 3;
+EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 1, @codigo_interno_asignatura = 16, @id_periodo = 3;
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 2, @codigo_interno_asignatura = 14, @id_periodo = 3;
 EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 2, @codigo_interno_asignatura = 18, @id_periodo = 3;
-EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 4, @codigo_interno_asignatura = 19, @id_periodo = 3;
-EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 7, @codigo_interno_asignatura = 15, @id_periodo = 3;
+EXEC sp_NotaFinal_Insertar @estado_nota = 'En curso', @id_estudiante = 4, @codigo_interno_asignatura = 10, @id_periodo = 3;
 GO
 
 -- ASISTENCIA
@@ -308,12 +305,12 @@ EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-04 07:00', @estado_asis
 EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-04 07:00', @estado_asistencia = 'Ausente', @id_estudiante = 7, @codigo_interno_asignatura = 5, @justificacion = 'Enfermo';
 EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-06 07:00', @estado_asistencia = 'Presente', @id_estudiante = 8, @codigo_interno_asignatura = 9;
 EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-07 07:10', @estado_asistencia = 'Tardía', @id_estudiante = 9, @codigo_interno_asignatura = 11, @justificacion = 'Problemas de bus';
-EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-03 14:05', @estado_asistencia = 'Presente', @id_estudiante = 1, @codigo_interno_asignatura = 12;
-EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-10 14:20', @estado_asistencia = 'Tardía', @id_estudiante = 1, @codigo_interno_asignatura = 12, @justificacion = 'Transporte';
-EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-04 09:00', @estado_asistencia = 'Presente', @id_estudiante = 7, @codigo_interno_asignatura = 13;
+EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-03 14:05', @estado_asistencia = 'Presente', @id_estudiante = 1, @codigo_interno_asignatura = 16;
+EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-10 14:20', @estado_asistencia = 'Tardía', @id_estudiante = 1, @codigo_interno_asignatura = 16, @justificacion = 'Transporte';
+EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-04 09:00', @estado_asistencia = 'Presente', @id_estudiante = 7, @codigo_interno_asignatura = 6;
 EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-05 14:00', @estado_asistencia = 'Presente', @id_estudiante = 2, @codigo_interno_asignatura = 14;
 EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-06 14:00', @estado_asistencia = 'Ausente', @id_estudiante = 2, @codigo_interno_asignatura = 18, @justificacion = 'Permiso familiar';
-EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-07 09:00', @estado_asistencia = 'Presente', @id_estudiante = 9, @codigo_interno_asignatura = 7;
+EXEC sp_Asistencia_Insertar @fecha_asistencia = '2025-03-07 09:00', @estado_asistencia = 'Presente', @id_estudiante = 9, @codigo_interno_asignatura = 15;
 GO
 
 -- TUTORIA

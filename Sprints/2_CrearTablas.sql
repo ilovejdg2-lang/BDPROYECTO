@@ -1,4 +1,4 @@
-/* ============================================================================
+﻿/* ============================================================================
    PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/7
    TABLAS
    ============================================================================ */
@@ -87,7 +87,7 @@ CREATE TABLE Profesor
     apellido2_profesor      VARCHAR(50)  NULL,
     correo_profesor         VARCHAR(100) NULL,
     telefono_profesor       VARCHAR(20)   NULL,
-    seguro_social_profesor  VARCHAR(30)   NULL,
+    seguro_social_profesor  INT           NULL,
     direccion               VARCHAR(200) NULL,
     CONSTRAINT PK_Profesor        PRIMARY KEY (codigo_interno_profesor),
     CONSTRAINT UQ_Profesor_cedula UNIQUE (cedula_profesor),
@@ -238,7 +238,7 @@ CREATE TABLE Estudiante
     apellido2_estudiante     VARCHAR(50)  NULL,
     correo_estudiante        VARCHAR(100) NULL,
     telefono_estudiante      VARCHAR(20)   NULL,
-    seguro_social_estudiante VARCHAR(30)   NULL,
+    seguro_social_estudiante INT           NULL,
     fecha_nacimiento         DATE          NULL,
     fecha_ingreso            DATE          NOT NULL DEFAULT (CAST(GETDATE() AS DATE)),
     CONSTRAINT PK_Estudiante        PRIMARY KEY (id_estudiante),
@@ -259,8 +259,10 @@ CREATE TABLE Matricula
     fecha_matricula  DATETIME     NOT NULL DEFAULT (GETDATE()),
     estado_matricula VARCHAR(20) NOT NULL DEFAULT ('Activa'),
     id_estudiante    INT          NOT NULL,
+    id_sede          INT          NOT NULL,
     CONSTRAINT PK_Matricula      PRIMARY KEY (id_matricula),
     CONSTRAINT FK_Mat_Estudiante FOREIGN KEY (id_estudiante) REFERENCES Estudiante(id_estudiante),
+    CONSTRAINT FK_Mat_Sede       FOREIGN KEY (id_sede) REFERENCES Sede(id_sede),
     CONSTRAINT CK_Mat_estado     CHECK (estado_matricula IN ('Activa', 'Anulada', 'Finalizada'))
 ) ON FG_Operaciones;
 GO
