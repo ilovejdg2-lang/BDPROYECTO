@@ -425,6 +425,44 @@ GO
 
 USE InstitutoTECNIC;
 GO
+CREATE OR ALTER TRIGGER tr_Profesor_UsuarioNoDuplicadoEnEstudiante
+ON Profesor AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Estudiante e ON e.id_usuario = i.id_usuario
+        WHERE i.id_usuario IS NOT NULL
+    )
+    BEGIN
+        RAISERROR(N'El id_usuario no puede estar asignado a un profesor y a un estudiante.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_Estudiante_UsuarioNoDuplicadoEnProfesor
+ON Estudiante AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Profesor p ON p.id_usuario = i.id_usuario
+        WHERE i.id_usuario IS NOT NULL
+    )
+    BEGIN
+        RAISERROR(N'El id_usuario no puede estar asignado a un estudiante y a un profesor.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
 CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_VerificaSede
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
@@ -446,7 +484,7 @@ GO
 
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_HorarioAsignatura_NoSolapamientoAula
+CREATE OR ALTER TRIGGER tr_HorarioAsignatura_UnaAsignaturaPorAulaBloque
 ON HorarioAsignatura AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -461,9 +499,10 @@ BEGIN
         WHERE a1.id_aula = a2.id_aula
           AND h1.dia_semana = h2.dia_semana
           AND h1.num_bloque = h2.num_bloque
+          AND a1.id_periodo = a2.id_periodo
     )
     BEGIN
-        RAISERROR(N'El aula ya esta ocupada en ese dia y bloque.', 16, 1);
+        RAISERROR(N'El aula ya esta ocupada en ese dia y bloque para el mismo periodo.', 16, 1);
         ROLLBACK TRANSACTION;
     END
 END
@@ -471,7 +510,7 @@ GO
 
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_HorarioAsignatura_NoSolapamientoProfesor
+CREATE OR ALTER TRIGGER tr_HorarioAsignatura_UnProfesorPorBloque
 ON HorarioAsignatura AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -486,9 +525,10 @@ BEGIN
         WHERE a1.codigo_interno_profesor = a2.codigo_interno_profesor
           AND h1.dia_semana = h2.dia_semana
           AND h1.num_bloque = h2.num_bloque
+          AND a1.id_periodo = a2.id_periodo
     )
     BEGIN
-        RAISERROR(N'El profesor ya tiene otra clase asignada en ese dia y bloque.', 16, 1);
+        RAISERROR(N'El profesor ya tiene otra clase asignada en ese dia y bloque para el mismo periodo.', 16, 1);
         ROLLBACK TRANSACTION;
     END
 END
@@ -541,6 +581,296 @@ GO
 
 USE InstitutoTECNIC;
 GO
+CREATE OR ALTER TRIGGER tr_Matricula_UnaActivaPorEstudiante
+ON Matricula AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Matricula m ON m.id_estudiante = i.id_estudiante
+        WHERE i.estado_matricula = N'Activa'
+          AND m.estado_matricula = N'Activa'
+          AND m.id_matricula <> i.id_matricula
+    )
+    BEGIN
+        RAISERROR(N'El estudiante ya tiene otra matricula activa.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_MatriculaValida
+ON AsignaturaMatricula AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Matricula m ON m.id_matricula = i.id_matricula
+        WHERE m.estado_matricula <> N'Activa'
+    )
+    BEGIN
+        RAISERROR(N'Solo se pueden inscribir asignaturas en matriculas activas.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_PeriodoAcordeAnnio
+ON AsignaturaMatricula AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Asignatura a ON a.codigo_interno_asignatura = i.codigo_interno_asignatura
+        JOIN Periodo pe ON pe.id_periodo = a.id_periodo
+        JOIN Matricula m ON m.id_matricula = i.id_matricula
+        WHERE pe.annio <> YEAR(m.fecha_matricula)
+    )
+    BEGIN
+        RAISERROR(N'El periodo de la asignatura no coincide con el annio de la matricula.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_CursoCoherente
+ON AsignaturaMatricula AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        WHERE NOT EXISTS (
+            SELECT 1 FROM AsignaturaCurso
+            WHERE codigo_interno_asignatura = i.codigo_interno_asignatura
+        )
+    )
+    BEGIN
+        RAISERROR(N'La asignatura no esta asociada a ningun curso.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        WHERE EXISTS (
+            SELECT 1
+            FROM AsignaturaMatricula am
+            WHERE am.id_matricula = i.id_matricula
+              AND am.codigo_interno_asignatura <> i.codigo_interno_asignatura
+        )
+        AND NOT EXISTS (
+            SELECT acN.id_curso
+            FROM AsignaturaCurso acN
+            JOIN inserted i ON acN.codigo_interno_asignatura = i.codigo_interno_asignatura
+            INTERSECT
+            SELECT acE.id_curso
+            FROM AsignaturaMatricula am
+            JOIN inserted i ON am.id_matricula = i.id_matricula
+            JOIN AsignaturaCurso acE ON acE.codigo_interno_asignatura = am.codigo_interno_asignatura
+            WHERE am.codigo_interno_asignatura <> i.codigo_interno_asignatura
+        )
+    )
+    BEGIN
+        RAISERROR(N'La asignatura no pertenece al mismo curso que las demas de la matricula.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_ProfesorImparticionActiva
+ON AsignaturaMatricula AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Asignatura a ON a.codigo_interno_asignatura = i.codigo_interno_asignatura
+        JOIN Matricula m ON m.id_matricula = i.id_matricula
+        WHERE a.fecha_fin_imparticion_profe IS NOT NULL
+          AND YEAR(a.fecha_fin_imparticion_profe) < YEAR(m.fecha_matricula)
+    )
+    BEGIN
+        RAISERROR(N'La fecha fin de imparticion del profesor es anterior al annio de la matricula.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_VerificaCapacidad
+ON AsignaturaMatricula AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Asignatura a ON a.codigo_interno_asignatura = i.codigo_interno_asignatura
+        JOIN Aula au ON au.id_aula = a.id_aula
+        CROSS APPLY (
+            SELECT COUNT(*) AS total_matriculados
+            FROM AsignaturaMatricula am
+            JOIN Matricula m ON m.id_matricula = am.id_matricula
+            WHERE am.codigo_interno_asignatura = i.codigo_interno_asignatura
+              AND m.estado_matricula = N'Activa'
+        ) cnt
+        WHERE cnt.total_matriculados > au.capacidad
+    )
+    BEGIN
+        RAISERROR(N'La asignatura supera la capacidad maxima del aula.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_NotaFinal_EstudianteMatriculado
+ON NotaFinal AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        WHERE NOT EXISTS (
+            SELECT 1
+            FROM AsignaturaMatricula am
+            JOIN Matricula m ON m.id_matricula = am.id_matricula
+            WHERE m.id_estudiante = i.id_estudiante
+              AND am.codigo_interno_asignatura = i.codigo_interno_asignatura
+              AND m.estado_matricula IN (N'Activa', N'Finalizada')
+        )
+    )
+    BEGIN
+        RAISERROR(N'El estudiante debe estar matriculado en la asignatura antes de registrar la nota.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_Prerrequisito_CodigoOficialExiste
+ON Prerrequisito AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        WHERE i.codigo_oficial_asignatura_prerequerida IS NOT NULL
+          AND NOT EXISTS (
+            SELECT 1 FROM Asignatura a
+            WHERE a.codigo_oficial = i.codigo_oficial_asignatura_prerequerida
+        )
+    )
+    BEGIN
+        RAISERROR(N'El codigo oficial del prerrequisito no existe en el catalogo de asignaturas.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_Profesor_UsuarioUnico
+ON Profesor AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT i.id_usuario
+        FROM inserted i
+        WHERE i.id_usuario IS NOT NULL
+        GROUP BY i.id_usuario
+        HAVING COUNT(*) > 1
+           OR EXISTS (
+               SELECT 1 FROM Profesor p
+               WHERE p.id_usuario = i.id_usuario
+                 AND p.codigo_interno_profesor NOT IN (SELECT codigo_interno_profesor FROM inserted)
+           )
+    )
+    BEGIN
+        RAISERROR(N'El id_usuario ya esta vinculado a otro profesor.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_Estudiante_UsuarioUnico
+ON Estudiante AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT i.id_usuario
+        FROM inserted i
+        WHERE i.id_usuario IS NOT NULL
+        GROUP BY i.id_usuario
+        HAVING COUNT(*) > 1
+           OR EXISTS (
+               SELECT 1 FROM Estudiante e
+               WHERE e.id_usuario = i.id_usuario
+                 AND e.id_estudiante NOT IN (SELECT id_estudiante FROM inserted)
+           )
+    )
+    BEGIN
+        RAISERROR(N'El id_usuario ya esta vinculado a otro estudiante.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_Profesor_ValidarRolUsuario
+ON Profesor AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Usuario u ON u.id_usuario = i.id_usuario
+        WHERE i.id_usuario IS NOT NULL AND u.rol <> N'Profesor'
+    )
+    BEGIN
+        RAISERROR(N'El usuario vinculado al profesor debe tener rol Profesor.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
+CREATE OR ALTER TRIGGER tr_Estudiante_ValidarRolUsuario
+ON Estudiante AFTER INSERT, UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM inserted i
+        JOIN Usuario u ON u.id_usuario = i.id_usuario
+        WHERE i.id_usuario IS NOT NULL AND u.rol <> N'Estudiante'
+    )
+    BEGIN
+        RAISERROR(N'El usuario vinculado al estudiante debe tener rol Estudiante.', 16, 1);
+        ROLLBACK TRANSACTION;
+    END
+END
+GO
+
+USE InstitutoTECNIC;
+GO
 CREATE OR ALTER TRIGGER tr_NotaFinal_CheckPromedio
 ON NotaFinal AFTER INSERT, UPDATE AS
 BEGIN
@@ -550,9 +880,11 @@ BEGIN
         FROM inserted i
         WHERE (i.estado_nota = N'En curso' AND i.promedio_final IS NOT NULL)
            OR (i.estado_nota IN (N'Aprobado', N'Reprobado') AND i.promedio_final IS NULL)
+           OR (i.estado_nota = N'Aprobado' AND i.promedio_final < 70)
+           OR (i.estado_nota = N'Reprobado' AND i.promedio_final >= 70)
     )
     BEGIN
-        RAISERROR(N'En curso debe tener promedio NULL, Aprobado/Reprobado deben tener promedio NOT NULL.', 16, 1);
+        RAISERROR(N'Nota invalida: En curso sin promedio; Aprobado >= 70; Reprobado < 70.', 16, 1);
         ROLLBACK TRANSACTION;
     END
 END

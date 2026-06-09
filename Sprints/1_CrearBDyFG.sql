@@ -3,12 +3,6 @@
    CREACION DE BASE, FILEGROUPS
    ============================================================================ */
 
---  crear la base (primary + log) 
-USE master;
-/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 1/7
-   CREACION DE BASE, FILEGROUPS
-   ============================================================================ */
 
 --  crear la base (primary + log) 
 USE master;
