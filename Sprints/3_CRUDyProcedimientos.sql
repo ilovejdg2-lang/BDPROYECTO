@@ -1,4 +1,4 @@
-﻿/* ============================================================================
+/* ============================================================================
    PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 3/7
    PROCEDIMIENTOS ALMACENADOS (CRUD + CONSULTAS CON JOINS)
    ============================================================================ */
@@ -718,6 +718,7 @@ BEGIN
 END
 GO
 
+
 USE InstitutoTECNIC;
 GO
 CREATE PROCEDURE sp_AsignaturaMatricula_Insertar
@@ -726,12 +727,26 @@ CREATE PROCEDURE sp_AsignaturaMatricula_Insertar
 AS
 BEGIN
     SET NOCOUNT ON;
+
+    -- Validar existencia
     IF NOT EXISTS (SELECT 1 FROM Asignatura WHERE codigo_interno_asignatura = @codigo_interno_asignatura)
        OR NOT EXISTS (SELECT 1 FROM Matricula WHERE id_matricula = @id_matricula)
     BEGIN
         RAISERROR('Error: Asignatura o matricula no existe.', 16, 1);
         RETURN;
     END
+
+    -- Validar que la matricula este activa
+    IF NOT EXISTS (
+        SELECT 1 FROM Matricula
+        WHERE id_matricula = @id_matricula AND estado_matricula = 'Activa'
+    )
+    BEGIN
+        RAISERROR('Error: Solo se pueden inscribir asignaturas en matriculas activas.', 16, 1);
+        RETURN;
+    END
+
+    -- Validar que la asignatura no sea historica respecto al año de matricula
     IF EXISTS (
         SELECT 1
         FROM Asignatura a
@@ -744,14 +759,8 @@ BEGIN
         RAISERROR('Error: La fecha fin de imparticion del profesor es anterior al annio de la matricula.', 16, 1);
         RETURN;
     END
-    IF NOT EXISTS (
-        SELECT 1 FROM Matricula
-        WHERE id_matricula = @id_matricula AND estado_matricula = 'Activa'
-    )
-    BEGIN
-        RAISERROR('Error: Solo se pueden inscribir asignaturas en matriculas activas.', 16, 1);
-        RETURN;
-    END
+
+    -- Validar que la asignatura este asociada a algun curso
     IF NOT EXISTS (
         SELECT 1 FROM AsignaturaCurso
         WHERE codigo_interno_asignatura = @codigo_interno_asignatura
@@ -760,6 +769,8 @@ BEGIN
         RAISERROR('Error: La asignatura no esta asociada a ningun curso.', 16, 1);
         RETURN;
     END
+
+    -- Validar que el periodo de la asignatura coincida con el año de la matricula
     IF EXISTS (
         SELECT 1
         FROM Asignatura a
@@ -772,21 +783,27 @@ BEGIN
         RAISERROR('Error: El periodo de la asignatura no coincide con el annio de la matricula.', 16, 1);
         RETURN;
     END
+
+    -- Validar que la asignatura pertenezca al mismo CICLO que las demas de la matricula
     IF EXISTS (SELECT 1 FROM AsignaturaMatricula WHERE id_matricula = @id_matricula)
        AND NOT EXISTS (
-        SELECT acN.id_curso
-        FROM AsignaturaCurso acN
-        WHERE acN.codigo_interno_asignatura = @codigo_interno_asignatura
+        SELECT ac1.codigo_interno_ciclo
+        FROM AsignaturaCurso asc1
+        JOIN Curso ac1 ON ac1.id_curso = asc1.id_curso
+        WHERE asc1.codigo_interno_asignatura = @codigo_interno_asignatura
         INTERSECT
-        SELECT acE.id_curso
+        SELECT ac2.codigo_interno_ciclo
         FROM AsignaturaMatricula am
-        JOIN AsignaturaCurso acE ON acE.codigo_interno_asignatura = am.codigo_interno_asignatura
+        JOIN AsignaturaCurso asc2 ON asc2.codigo_interno_asignatura = am.codigo_interno_asignatura
+        JOIN Curso ac2 ON ac2.id_curso = asc2.id_curso
         WHERE am.id_matricula = @id_matricula
     )
     BEGIN
-        RAISERROR('Error: La asignatura no pertenece al mismo curso que las demas de la matricula.', 16, 1);
+        RAISERROR('Error: La asignatura no pertenece al mismo ciclo que las demas de la matricula.', 16, 1);
         RETURN;
     END
+
+    -- Validar que la asignatura pertenezca a la misma sede de la matricula
     IF EXISTS (
         SELECT 1
         FROM Matricula m
@@ -799,6 +816,8 @@ BEGIN
         RAISERROR('Error: La asignatura no pertenece a la sede de la matricula.', 16, 1);
         RETURN;
     END
+
+    -- Validar capacidad del aula
     IF (
         SELECT COUNT(*)
         FROM AsignaturaMatricula am
@@ -815,8 +834,10 @@ BEGIN
         RAISERROR('Error: La asignatura ya alcanzo la capacidad maxima del aula.', 16, 1);
         RETURN;
     END
+
     INSERT INTO AsignaturaMatricula (codigo_interno_asignatura, id_matricula)
     VALUES (@codigo_interno_asignatura, @id_matricula);
+
     SELECT SCOPE_IDENTITY() AS id_asignatura_matricula_creada;
 END
 GO
@@ -1511,3 +1532,10 @@ USE InstitutoTECNIC;
 GO
 SELECT COUNT(*) AS total_procedimientos FROM sys.procedures;
 GO
+
+
+
+
+SELECT name AS nombre_procedimiento
+FROM sys.procedures
+ORDER BY name;
