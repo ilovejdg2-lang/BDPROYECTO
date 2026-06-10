@@ -646,6 +646,8 @@ CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_CursoCoherente
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
+
+    -- Validar que la asignatura esté asociada a algún curso
     IF EXISTS (
         SELECT 1
         FROM inserted i
@@ -657,7 +659,10 @@ BEGIN
     BEGIN
         RAISERROR(N'La asignatura no esta asociada a ningun curso.', 16, 1);
         ROLLBACK TRANSACTION;
+        RETURN;
     END
+
+    -- Validar que la asignatura pertenezca al mismo CICLO que las demás de la matrícula
     IF EXISTS (
         SELECT 1
         FROM inserted i
@@ -668,20 +673,23 @@ BEGIN
               AND am.codigo_interno_asignatura <> i.codigo_interno_asignatura
         )
         AND NOT EXISTS (
-            SELECT acN.id_curso
-            FROM AsignaturaCurso acN
-            JOIN inserted i ON acN.codigo_interno_asignatura = i.codigo_interno_asignatura
+            SELECT c1.codigo_interno_ciclo
+            FROM AsignaturaCurso ac1
+            JOIN Curso c1 ON c1.id_curso = ac1.id_curso
+            WHERE ac1.codigo_interno_asignatura = i.codigo_interno_asignatura
             INTERSECT
-            SELECT acE.id_curso
+            SELECT c2.codigo_interno_ciclo
             FROM AsignaturaMatricula am
-            JOIN inserted i ON am.id_matricula = i.id_matricula
-            JOIN AsignaturaCurso acE ON acE.codigo_interno_asignatura = am.codigo_interno_asignatura
-            WHERE am.codigo_interno_asignatura <> i.codigo_interno_asignatura
+            JOIN AsignaturaCurso ac2 ON ac2.codigo_interno_asignatura = am.codigo_interno_asignatura
+            JOIN Curso c2 ON c2.id_curso = ac2.id_curso
+            WHERE am.id_matricula = i.id_matricula
+              AND am.codigo_interno_asignatura <> i.codigo_interno_asignatura
         )
     )
     BEGIN
-        RAISERROR(N'La asignatura no pertenece al mismo curso que las demas de la matricula.', 16, 1);
+        RAISERROR(N'La asignatura no pertenece al mismo ciclo que las demas de la matricula.', 16, 1);
         ROLLBACK TRANSACTION;
+        RETURN;
     END
 END
 GO
