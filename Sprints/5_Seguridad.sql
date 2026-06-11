@@ -521,3 +521,23 @@ GRANT EXECUTE ON sp_Asistencia_Insertar TO rol_profesor;
 GRANT EXECUTE ON sp_Asistencia_Actualizar TO rol_profesor;
 GRANT EXECUTE ON sp_Asistencia_Obtener TO rol_profesor;
 GO
+
+-- Respaldo completo de la base de datos
+DECLARE @backupFileName NVARCHAR(250);
+
+SET @backupFileName = 'C:\SqlBackup\InstitutoTECNIC_FULL_'
+    + CONVERT(NVARCHAR(20), GETDATE(), 112)
+    + REPLACE(CONVERT(NVARCHAR(8), GETDATE(), 108), ':', '')
+    + '.bak';
+
+BACKUP DATABASE [InstitutoTECNIC]
+TO DISK = @backupFileName
+WITH DESCRIPTION = N'Backup Completo - InstitutoTECNIC',
+     NOFORMAT,
+     NOINIT,
+     NAME = N'InstitutoTECNIC-Full Database Backup',
+     SKIP,
+     NOREWIND,
+     NOUNLOAD,
+     STATS = 10;
+GO
