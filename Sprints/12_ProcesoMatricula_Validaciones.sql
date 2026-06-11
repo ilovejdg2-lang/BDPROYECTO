@@ -1,9 +1,6 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 11/11
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 12/11
    PROCESO DE MATRICULA (VALIDACIONES)
-   ============================================================================
-   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6 y 10
-   Estos casos deben generar errores controlados.
    ============================================================================ */
 
 -- Administrador: intentar ofertar una asignatura invalida

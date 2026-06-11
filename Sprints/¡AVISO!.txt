@@ -1,0 +1,1 @@
+Tener las carpetas "SQLData", "SQLLOG" Y "SqlBackup" en el C:, ya que en estas se crean archivos y si no están, no se pueden crear.

@@ -1,6 +1,7 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 4/9
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 5/12
    TRIGGERS DE AUDITORIA Y REGLAS DE NEGOCIO
+   Requiere ejecutar antes: 1, 2, 3, 4
    ============================================================================ */
 
 -- AUDITORIA SEDE
@@ -1337,7 +1338,7 @@ BEGIN
 
         WHILE @@FETCH_STATUS = 0
         BEGIN
-            EXEC sp_Tutoria_ActualizarAntiguedad @id_tutoria = @id_tutoria;
+           EXEC sp_Tutoria_ActualizarAntiguedad @id_tutoria = @id_tutoria;
             FETCH NEXT FROM cur_tutoria INTO @id_tutoria;
         END
 

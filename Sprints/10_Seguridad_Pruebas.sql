@@ -1,7 +1,7 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 9/10
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 10/12
    PRUEBAS DE SEGURIDAD (USUARIOS, ROLES, LOGIN Y BITACORA)
-   Requiere ejecutar antes: 1, 2, 3, 4, 5 y 6
+   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6, 7
    ============================================================================ */
 
 --Validar login de administrador

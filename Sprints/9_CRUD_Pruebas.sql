@@ -1,6 +1,7 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 8/9
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 9/12
    PRUEBAS CRUD
+   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6, 7
    ============================================================================ */
 
 --Sede

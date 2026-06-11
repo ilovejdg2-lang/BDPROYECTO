@@ -1,5 +1,5 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/9
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/12
    TABLAS
    ============================================================================ */
 
@@ -396,14 +396,13 @@ CREATE TABLE Asistencia
 ) ON FG_Operaciones;
 GO
 
--- TABLA: Tutoria (FG_Operaciones)
--- antiguedad_tutor = anos acumulados desde fecha_inicio_tutoria (proceso automatico).
+-- TABLA: Tutoria (FG_Operaciones).
 USE InstitutoTECNIC;
 GO
 CREATE TABLE Tutoria
 (
     id_tutoria              INT  IDENTITY(1,1) NOT NULL,
-    antiguedad_tutor        INT  NULL,  -- anos enteros desde fecha_inicio_tutoria
+    antiguedad_tutor        INT  NULL, 
     fecha_inicio_tutoria    DATE NULL,
     fecha_fin_tutoria       DATE NULL,
     codigo_interno_profesor INT  NOT NULL,
