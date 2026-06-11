@@ -1,5 +1,5 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/12
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/11
    TABLAS
    ============================================================================ */
 
@@ -142,8 +142,6 @@ CREATE TABLE Periodo
 GO
 
 -- TABLA: Asignatura (FG_Academico)
--- Instancia semestral: codigo_interno cambia cada periodo/aula.
--- codigo_oficial identifica la materia (MEP) para acumular antiguedad del profesor.
 USE InstitutoTECNIC;
 GO
 CREATE TABLE Asignatura

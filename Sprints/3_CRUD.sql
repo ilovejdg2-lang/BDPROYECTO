@@ -1,7 +1,6 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 3/12
-   PROCEDIMIENTOS ALMACENADOS (CRUD)
-   Requiere ejecutar antes: 1, 2
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 3/11   
+   PROCEDIMIENTOS ALMACENADOS DE CRUD
    ============================================================================ */
 -- PROCEDIMIENTOS CRUD
 

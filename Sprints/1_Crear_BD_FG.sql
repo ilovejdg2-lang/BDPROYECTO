@@ -1,5 +1,5 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 1/12
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 1/11
    CREACION DE BASE, FILEGROUPS
    ============================================================================ */
 

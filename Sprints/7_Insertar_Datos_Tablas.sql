@@ -1,6 +1,5 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 7/12
-   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 7/11
    INSERCION DE DATOS EN LAS TABLAS
    ============================================================================ */
 

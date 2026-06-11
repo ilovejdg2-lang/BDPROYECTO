@@ -1,9 +1,7 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 4/12
-   PROCEDIMIENTOS DE CONSULTA Y JOINS
-   Requiere ejecutar antes: 1, 2, 3
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 4/11
+   PROCEDIMIENTOS DE CONSULTAS CON JOINS
    ============================================================================ */
--- PROCEDIMIENTOS CONSULTA
 
 --Consultar asignaturas por bloque horario
 USE InstitutoTECNIC;

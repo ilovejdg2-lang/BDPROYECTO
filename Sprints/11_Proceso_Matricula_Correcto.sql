@@ -1,8 +1,6 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 11/12
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 11/11
    PROCESO DE MATRICULA (FLUJO CORRECTO)
-   ============================================================================
-   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6, 7
    ============================================================================ */
 
 -- Administrador: ofertar asignatura

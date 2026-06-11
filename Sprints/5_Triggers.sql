@@ -1,7 +1,6 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 5/12
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 5/11
    TRIGGERS DE AUDITORIA Y REGLAS DE NEGOCIO
-   Requiere ejecutar antes: 1, 2, 3, 4
    ============================================================================ */
 
 -- AUDITORIA SEDE

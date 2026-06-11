@@ -1,7 +1,6 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 8/12
-   PRUEBAS DE CONSULTAS Y JOINS
-   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6, 7
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 8/11
+   PRUEBAS DE CONSULTAS CON JOINS
    ============================================================================ */
 
 -- CONSULTAS DEL ENUNCIADO

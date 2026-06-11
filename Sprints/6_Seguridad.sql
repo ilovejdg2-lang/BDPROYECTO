@@ -1,7 +1,6 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 6/12
-   SEGURIDAD (ROLES, PERMISOS Y PROCEDIMIENTOS)
-   Requiere ejecutar antes: 1, 2, 3, 4, 5
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 6/11
+   SEGURIDAD 
    ============================================================================ */
 
 -- CRUD: USUARIO
