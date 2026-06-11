@@ -1,402 +1,718 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 4/7
-   TRIGGERS, BITACORA Y REGLAS DE NEGOCIO
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 4/9
+   TRIGGERS DE AUDITORIA Y REGLAS DE NEGOCIO
    ============================================================================ */
 
--- TRIGGER AUDITORIA: Sede (INSERT)
+-- AUDITORIA SEDE
+
+--Registrar insercion en Sede
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Sede_Insert ON Sede AFTER INSERT AS
+CREATE TRIGGER tr_Sede_Insert ON Sede AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Sede: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Sede';
 END
 GO
 
--- TRIGGER AUDITORIA: Sede (UPDATE)
+--Registrar actualizacion en Sede
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Sede_Update ON Sede AFTER UPDATE AS
+CREATE TRIGGER tr_Sede_Update ON Sede AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en Sede: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Sede';
 END
 GO
 
--- TRIGGER AUDITORIA: Sede (DELETE)
+--Registrar eliminacion en Sede
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Sede_Delete ON Sede AFTER DELETE AS
+CREATE TRIGGER tr_Sede_Delete ON Sede AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'DELETE en Sede: ', (SELECT COUNT(*) FROM deleted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Sede';
 END
 GO
 
--- TRIGGER AUDITORIA: Aula (INSERT)
+-- AUDITORIA AULA
+
+--Registrar insercion en Aula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Aula_Insert ON Aula AFTER INSERT AS
+CREATE TRIGGER tr_Aula_Insert ON Aula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Aula: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Aula';
 END
 GO
 
--- TRIGGER AUDITORIA: Aula (UPDATE)
+--Registrar actualizacion en Aula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Aula_Update ON Aula AFTER UPDATE AS
+CREATE TRIGGER tr_Aula_Update ON Aula AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en Aula: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Aula';
 END
 GO
 
--- TRIGGER AUDITORIA: Aula (DELETE)
+--Registrar eliminacion en Aula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Aula_Delete ON Aula AFTER DELETE AS
+CREATE TRIGGER tr_Aula_Delete ON Aula AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'DELETE en Aula: ', (SELECT COUNT(*) FROM deleted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Aula';
 END
 GO
 
--- TRIGGER AUDITORIA: Ciclo (INSERT)
+-- AUDITORIA CICLO
+
+--Registrar insercion en Ciclo
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Ciclo_Insert ON Ciclo AFTER INSERT AS
+CREATE TRIGGER tr_Ciclo_Insert ON Ciclo AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Ciclo: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Ciclo';
 END
 GO
 
--- TRIGGER AUDITORIA: Ciclo (UPDATE)
+--Registrar actualizacion en Ciclo
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Ciclo_Update ON Ciclo AFTER UPDATE AS
+CREATE TRIGGER tr_Ciclo_Update ON Ciclo AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en Ciclo: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Ciclo';
 END
 GO
 
--- TRIGGER AUDITORIA: Ciclo (DELETE)
+--Registrar eliminacion en Ciclo
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Ciclo_Delete ON Ciclo AFTER DELETE AS
+CREATE TRIGGER tr_Ciclo_Delete ON Ciclo AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'DELETE en Ciclo: ', (SELECT COUNT(*) FROM deleted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Ciclo';
 END
 GO
 
--- TRIGGER AUDITORIA: Curso (INSERT)
+-- AUDITORIA CURSO
+
+--Registrar insercion en Curso
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Curso_Insert ON Curso AFTER INSERT AS
+CREATE TRIGGER tr_Curso_Insert ON Curso AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Curso: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Curso';
 END
 GO
 
--- TRIGGER AUDITORIA: Curso (UPDATE)
+--Registrar actualizacion en Curso
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Curso_Update ON Curso AFTER UPDATE AS
+CREATE TRIGGER tr_Curso_Update ON Curso AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en Curso: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Curso';
 END
 GO
 
--- TRIGGER AUDITORIA: Curso (DELETE)
+--Registrar eliminacion en Curso
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Curso_Delete ON Curso AFTER DELETE AS
+CREATE TRIGGER tr_Curso_Delete ON Curso AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'DELETE en Curso: ', (SELECT COUNT(*) FROM deleted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Curso';
 END
 GO
 
--- TRIGGER AUDITORIA: Profesor (INSERT)
+-- AUDITORIA USUARIO
+
+--Registrar insercion en Usuario
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Profesor_Insert ON Profesor AFTER INSERT AS
+CREATE TRIGGER tr_Usuario_Insert ON Usuario AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Profesor: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Usuario';
 END
 GO
 
--- TRIGGER AUDITORIA: Profesor (UPDATE)
+--Registrar actualizacion en Usuario
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Profesor_Update ON Profesor AFTER UPDATE AS
+CREATE TRIGGER tr_Usuario_Update ON Usuario AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en Profesor: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Usuario';
 END
 GO
 
--- TRIGGER AUDITORIA: Profesor (DELETE)
+--Registrar eliminacion en Usuario
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Profesor_Delete ON Profesor AFTER DELETE AS
+CREATE TRIGGER tr_Usuario_Delete ON Usuario AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'DELETE en Profesor: ', (SELECT COUNT(*) FROM deleted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Usuario';
 END
 GO
 
--- TRIGGER AUDITORIA: Asignatura (INSERT)
+-- AUDITORIA PROFESOR
+
+--Registrar insercion en Profesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Asignatura_Insert ON Asignatura AFTER INSERT AS
+CREATE TRIGGER tr_Profesor_Insert ON Profesor AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Asignatura: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Profesor';
 END
 GO
 
--- TRIGGER AUDITORIA: Asignatura (UPDATE)
+--Registrar actualizacion en Profesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Asignatura_Update ON Asignatura AFTER UPDATE AS
+CREATE TRIGGER tr_Profesor_Update ON Profesor AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en Asignatura: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Profesor';
 END
 GO
 
--- TRIGGER AUDITORIA: Asignatura (DELETE)
+--Registrar eliminacion en Profesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Asignatura_Delete ON Asignatura AFTER DELETE AS
+CREATE TRIGGER tr_Profesor_Delete ON Profesor AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'DELETE en Asignatura: ', (SELECT COUNT(*) FROM deleted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Profesor';
 END
 GO
 
--- TRIGGER AUDITORIA: Estudiante (INSERT)
+-- AUDITORIA PERIODO
+
+--Registrar insercion en Periodo
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Estudiante_Insert ON Estudiante AFTER INSERT AS
+CREATE TRIGGER tr_Periodo_Insert ON Periodo AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Estudiante: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Periodo';
 END
 GO
 
--- TRIGGER AUDITORIA: Estudiante (UPDATE)
+--Registrar actualizacion en Periodo
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Estudiante_Update ON Estudiante AFTER UPDATE AS
+CREATE TRIGGER tr_Periodo_Update ON Periodo AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en Estudiante: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Periodo';
 END
 GO
 
--- TRIGGER AUDITORIA: Estudiante (DELETE)
+--Registrar eliminacion en Periodo
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Estudiante_Delete ON Estudiante AFTER DELETE AS
+CREATE TRIGGER tr_Periodo_Delete ON Periodo AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'DELETE en Estudiante: ', (SELECT COUNT(*) FROM deleted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Periodo';
 END
 GO
 
--- TRIGGER AUDITORIA: Matricula (INSERT)
+-- AUDITORIA ASIGNATURA
+
+--Registrar insercion en Asignatura
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Matricula_Insert ON Matricula AFTER INSERT AS
+CREATE TRIGGER tr_Asignatura_Insert ON Asignatura AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Matricula: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Asignatura';
 END
 GO
 
--- TRIGGER AUDITORIA: AsignaturaMatricula (INSERT)
+--Registrar actualizacion en Asignatura
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_Insert ON AsignaturaMatricula AFTER INSERT AS
+CREATE TRIGGER tr_Asignatura_Update ON Asignatura AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en AsignaturaMatricula: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Asignatura';
 END
 GO
 
--- TRIGGER AUDITORIA: NotaFinal (INSERT)
+--Registrar eliminacion en Asignatura
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_NotaFinal_Insert ON NotaFinal AFTER INSERT AS
+CREATE TRIGGER tr_Asignatura_Delete ON Asignatura AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en NotaFinal: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Asignatura';
 END
 GO
 
--- TRIGGER AUDITORIA: NotaFinal (UPDATE)
+-- AUDITORIA ASIGNATURAPROFESOR
+
+--Registrar insercion en AsignaturaProfesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_NotaFinal_Update ON NotaFinal AFTER UPDATE AS
+CREATE TRIGGER tr_AsignaturaProfesor_Insert ON AsignaturaProfesor AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'UPDATE en NotaFinal: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'AsignaturaProfesor';
 END
 GO
 
--- TRIGGER AUDITORIA: Asistencia (INSERT)
+--Registrar actualizacion en AsignaturaProfesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Asistencia_Insert ON Asistencia AFTER INSERT AS
+CREATE TRIGGER tr_AsignaturaProfesor_Update ON AsignaturaProfesor AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    DECLARE @u INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
-    IF @u IS NULL SELECT TOP 1 @u = id_usuario FROM Usuario WHERE rol = N'Administrador';
-    IF @u IS NOT NULL
-        INSERT INTO Bitacora (id_usuario, accion, ip_equipo)
-        VALUES (@u, CONCAT(N'INSERT en Asistencia: ', (SELECT COUNT(*) FROM inserted), N' fila(s)'),
-                CONVERT(VARCHAR(50), CONNECTIONPROPERTY('client_net_address')));
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'AsignaturaProfesor';
+END
+GO
+
+--Registrar eliminacion en AsignaturaProfesor
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaProfesor_Delete ON AsignaturaProfesor AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'AsignaturaProfesor';
+END
+GO
+
+-- AUDITORIA BLOQUEHORARIO
+
+--Registrar insercion en BloqueHorario
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_BloqueHorario_Insert ON BloqueHorario AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'BloqueHorario';
+END
+GO
+
+--Registrar actualizacion en BloqueHorario
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_BloqueHorario_Update ON BloqueHorario AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'BloqueHorario';
+END
+GO
+
+--Registrar eliminacion en BloqueHorario
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_BloqueHorario_Delete ON BloqueHorario AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'BloqueHorario';
+END
+GO
+
+-- AUDITORIA HORARIO
+
+--Registrar insercion en Horario
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Horario_Insert ON Horario AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Horario';
+END
+GO
+
+--Registrar actualizacion en Horario
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Horario_Update ON Horario AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Horario';
+END
+GO
+
+--Registrar eliminacion en Horario
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Horario_Delete ON Horario AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Horario';
+END
+GO
+
+-- AUDITORIA HORARIOASIGNATURA
+
+--Registrar insercion en HorarioAsignatura
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_HorarioAsignatura_Insert ON HorarioAsignatura AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'HorarioAsignatura';
+END
+GO
+
+--Registrar actualizacion en HorarioAsignatura
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_HorarioAsignatura_Update ON HorarioAsignatura AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'HorarioAsignatura';
+END
+GO
+
+--Registrar eliminacion en HorarioAsignatura
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_HorarioAsignatura_Delete ON HorarioAsignatura AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'HorarioAsignatura';
+END
+GO
+
+-- AUDITORIA ASIGNATURACICLO
+
+--Registrar insercion en AsignaturaCiclo
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaCiclo_Insert ON AsignaturaCiclo AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'AsignaturaCiclo';
+END
+GO
+
+--Registrar actualizacion en AsignaturaCiclo
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaCiclo_Update ON AsignaturaCiclo AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'AsignaturaCiclo';
+END
+GO
+
+--Registrar eliminacion en AsignaturaCiclo
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaCiclo_Delete ON AsignaturaCiclo AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'AsignaturaCiclo';
+END
+GO
+
+-- AUDITORIA ASIGNATURACURSO
+
+--Registrar insercion en AsignaturaCurso
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaCurso_Insert ON AsignaturaCurso AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'AsignaturaCurso';
+END
+GO
+
+--Registrar actualizacion en AsignaturaCurso
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaCurso_Update ON AsignaturaCurso AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'AsignaturaCurso';
+END
+GO
+
+--Registrar eliminacion en AsignaturaCurso
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaCurso_Delete ON AsignaturaCurso AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'AsignaturaCurso';
+END
+GO
+
+-- AUDITORIA PRERREQUISITO
+
+--Registrar insercion en Prerrequisito
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Prerrequisito_Insert ON Prerrequisito AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Prerrequisito';
+END
+GO
+
+--Registrar actualizacion en Prerrequisito
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Prerrequisito_Update ON Prerrequisito AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Prerrequisito';
+END
+GO
+
+--Registrar eliminacion en Prerrequisito
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Prerrequisito_Delete ON Prerrequisito AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Prerrequisito';
+END
+GO
+
+-- AUDITORIA ASIGNATURAPRERREQUISITO
+
+--Registrar insercion en AsignaturaPrerrequisito
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaPrerrequisito_Insert ON AsignaturaPrerrequisito AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'AsignaturaPrerrequisito';
+END
+GO
+
+--Registrar actualizacion en AsignaturaPrerrequisito
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaPrerrequisito_Update ON AsignaturaPrerrequisito AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'AsignaturaPrerrequisito';
+END
+GO
+
+--Registrar eliminacion en AsignaturaPrerrequisito
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaPrerrequisito_Delete ON AsignaturaPrerrequisito AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'AsignaturaPrerrequisito';
+END
+GO
+
+-- AUDITORIA ESTUDIANTE
+
+--Registrar insercion en Estudiante
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Estudiante_Insert ON Estudiante AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Estudiante';
+END
+GO
+
+--Registrar actualizacion en Estudiante
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Estudiante_Update ON Estudiante AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Estudiante';
+END
+GO
+
+--Registrar eliminacion en Estudiante
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Estudiante_Delete ON Estudiante AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Estudiante';
+END
+GO
+
+-- AUDITORIA MATRICULA
+
+--Registrar insercion en Matricula
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Matricula_Insert ON Matricula AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Matricula';
+END
+GO
+
+--Registrar actualizacion en Matricula
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Matricula_Update ON Matricula AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Matricula';
+END
+GO
+
+--Registrar eliminacion en Matricula
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Matricula_Delete ON Matricula AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Matricula';
+END
+GO
+
+-- AUDITORIA ASIGNATURAMATRICULA
+
+--Registrar insercion en AsignaturaMatricula
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaMatricula_Insert ON AsignaturaMatricula AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'AsignaturaMatricula';
+END
+GO
+
+--Registrar actualizacion en AsignaturaMatricula
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaMatricula_Update ON AsignaturaMatricula AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'AsignaturaMatricula';
+END
+GO
+
+--Registrar eliminacion en AsignaturaMatricula
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaMatricula_Delete ON AsignaturaMatricula AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'AsignaturaMatricula';
+END
+GO
+
+-- AUDITORIA NOTAFINAL
+
+--Registrar insercion en NotaFinal
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_NotaFinal_Insert ON NotaFinal AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'NotaFinal';
+END
+GO
+
+--Registrar actualizacion en NotaFinal
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_NotaFinal_Update ON NotaFinal AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'NotaFinal';
+END
+GO
+
+--Registrar eliminacion en NotaFinal
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_NotaFinal_Delete ON NotaFinal AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'NotaFinal';
+END
+GO
+
+-- AUDITORIA ASISTENCIA
+
+--Registrar insercion en Asistencia
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Asistencia_Insert ON Asistencia AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Asistencia';
+END
+GO
+
+--Registrar actualizacion en Asistencia
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Asistencia_Update ON Asistencia AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Asistencia';
+END
+GO
+
+--Registrar eliminacion en Asistencia
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Asistencia_Delete ON Asistencia AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Asistencia';
+END
+GO
+
+-- AUDITORIA TUTORIA
+
+--Registrar insercion en Tutoria
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Tutoria_Insert ON Tutoria AFTER INSERT AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'Tutoria';
+END
+GO
+
+--Registrar actualizacion en Tutoria
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Tutoria_Update ON Tutoria AFTER UPDATE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'Tutoria';
+END
+GO
+
+--Registrar eliminacion en Tutoria
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Tutoria_Delete ON Tutoria AFTER DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'Tutoria';
 END
 GO
 
 -- REGLAS DE NEGOCIO
+
+--Validar prerrequisitos al inscribir asignatura
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_VerificaPrerrequisito
+CREATE TRIGGER tr_AsignaturaMatricula_VerificaPrerrequisito
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
@@ -423,9 +739,10 @@ BEGIN
 END
 GO
 
+--Validar usuario unico al asignar profesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Profesor_UsuarioNoDuplicadoEnEstudiante
+CREATE TRIGGER tr_Profesor_UsuarioNoDuplicadoEnEstudiante
 ON Profesor AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -442,9 +759,10 @@ BEGIN
 END
 GO
 
+--Validar usuario unico al asignar estudiante
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Estudiante_UsuarioNoDuplicadoEnProfesor
+CREATE TRIGGER tr_Estudiante_UsuarioNoDuplicadoEnProfesor
 ON Estudiante AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -461,9 +779,10 @@ BEGIN
 END
 GO
 
+--Validar sede de la asignatura en matricula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_VerificaSede
+CREATE TRIGGER tr_AsignaturaMatricula_VerificaSede
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
@@ -482,9 +801,10 @@ BEGIN
 END
 GO
 
+--Validar aula ocupada por dia y bloque
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_HorarioAsignatura_UnaAsignaturaPorAulaBloque
+CREATE TRIGGER tr_HorarioAsignatura_UnaAsignaturaPorAulaBloque
 ON HorarioAsignatura AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -508,9 +828,10 @@ BEGIN
 END
 GO
 
+--Validar horario del profesor por bloque
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_HorarioAsignatura_UnProfesorPorBloque
+CREATE TRIGGER tr_HorarioAsignatura_UnProfesorPorBloque
 ON HorarioAsignatura AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -518,11 +839,13 @@ BEGIN
         SELECT 1
         FROM inserted i
         JOIN Asignatura a1 ON a1.codigo_interno_asignatura = i.codigo_interno_asignatura
+        JOIN AsignaturaProfesor pa1 ON pa1.codigo_interno_asignatura = a1.codigo_interno_asignatura
         JOIN Horario h1 ON h1.id_horario = i.id_horario
         JOIN HorarioAsignatura ha ON ha.id_horario_asignatura <> i.id_horario_asignatura
         JOIN Horario h2 ON h2.id_horario = ha.id_horario
         JOIN Asignatura a2 ON a2.codigo_interno_asignatura = ha.codigo_interno_asignatura
-        WHERE a1.codigo_interno_profesor = a2.codigo_interno_profesor
+        JOIN AsignaturaProfesor pa2 ON pa2.codigo_interno_asignatura = a2.codigo_interno_asignatura
+        WHERE pa1.codigo_interno_profesor = pa2.codigo_interno_profesor
           AND h1.dia_semana = h2.dia_semana
           AND h1.num_bloque = h2.num_bloque
           AND a1.id_periodo = a2.id_periodo
@@ -534,17 +857,18 @@ BEGIN
 END
 GO
 
+--Impedir eliminar profesor con asignaturas activas
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Profesor_NoDeleteIfHasActiveAssignments
+CREATE TRIGGER tr_Profesor_NoDeleteIfHasActiveAssignments
 ON Profesor INSTEAD OF DELETE AS
 BEGIN
     SET NOCOUNT ON;
     IF EXISTS (
         SELECT 1
         FROM deleted d
-        JOIN Asignatura a ON a.codigo_interno_profesor = d.codigo_interno_profesor
-        WHERE a.fecha_fin_imparticion_profe IS NULL
+        JOIN AsignaturaProfesor pa ON pa.codigo_interno_profesor = d.codigo_interno_profesor
+        WHERE pa.fecha_fin_imparticion IS NULL
     )
     BEGIN
         RAISERROR(N'No se puede eliminar un profesor que tiene asignaturas activas.', 16, 1);
@@ -557,9 +881,10 @@ BEGIN
 END
 GO
 
+--Impedir eliminar curso con asignaturas
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Curso_NoDeleteIfHasAsignaturas
+CREATE TRIGGER tr_Curso_NoDeleteIfHasAsignaturas
 ON Curso INSTEAD OF DELETE AS
 BEGIN
     SET NOCOUNT ON;
@@ -579,9 +904,10 @@ BEGIN
 END
 GO
 
+--Validar una matricula activa por estudiante
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Matricula_UnaActivaPorEstudiante
+CREATE TRIGGER tr_Matricula_UnaActivaPorEstudiante
 ON Matricula AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -600,9 +926,10 @@ BEGIN
 END
 GO
 
+--Validar matricula activa al inscribir
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_MatriculaValida
+CREATE TRIGGER tr_AsignaturaMatricula_MatriculaValida
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
@@ -619,9 +946,10 @@ BEGIN
 END
 GO
 
+--Validar periodo y annio de matricula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_PeriodoAcordeAnnio
+CREATE TRIGGER tr_AsignaturaMatricula_PeriodoAcordeAnnio
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
@@ -640,14 +968,14 @@ BEGIN
 END
 GO
 
+--Validar ciclo coherente en matricula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_CursoCoherente
+CREATE TRIGGER tr_AsignaturaMatricula_CursoCoherente
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Validar que la asignatura esté asociada a algún curso
     IF EXISTS (
         SELECT 1
         FROM inserted i
@@ -662,7 +990,6 @@ BEGIN
         RETURN;
     END
 
-    -- Validar que la asignatura pertenezca al mismo CICLO que las demás de la matrícula
     IF EXISTS (
         SELECT 1
         FROM inserted i
@@ -694,9 +1021,10 @@ BEGIN
 END
 GO
 
+--Validar fechas de imparticion del profesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_ProfesorImparticionActiva
+CREATE TRIGGER tr_AsignaturaMatricula_ProfesorImparticionActiva
 ON AsignaturaMatricula AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -704,9 +1032,10 @@ BEGIN
         SELECT 1
         FROM inserted i
         JOIN Asignatura a ON a.codigo_interno_asignatura = i.codigo_interno_asignatura
+        JOIN AsignaturaProfesor pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
         JOIN Matricula m ON m.id_matricula = i.id_matricula
-        WHERE a.fecha_fin_imparticion_profe IS NOT NULL
-          AND YEAR(a.fecha_fin_imparticion_profe) < YEAR(m.fecha_matricula)
+        WHERE pa.fecha_fin_imparticion IS NOT NULL
+          AND YEAR(pa.fecha_fin_imparticion) < YEAR(m.fecha_matricula)
     )
     BEGIN
         RAISERROR(N'La fecha fin de imparticion del profesor es anterior al annio de la matricula.', 16, 1);
@@ -715,9 +1044,10 @@ BEGIN
 END
 GO
 
+--Validar capacidad del aula
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_AsignaturaMatricula_VerificaCapacidad
+CREATE TRIGGER tr_AsignaturaMatricula_VerificaCapacidad
 ON AsignaturaMatricula AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
@@ -742,9 +1072,10 @@ BEGIN
 END
 GO
 
+--Validar matricula antes de registrar nota
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_NotaFinal_EstudianteMatriculado
+CREATE TRIGGER tr_NotaFinal_EstudianteMatriculado
 ON NotaFinal AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -767,9 +1098,10 @@ BEGIN
 END
 GO
 
+--Validar codigo oficial del prerrequisito
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Prerrequisito_CodigoOficialExiste
+CREATE TRIGGER tr_Prerrequisito_CodigoOficialExiste
 ON Prerrequisito AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -789,9 +1121,10 @@ BEGIN
 END
 GO
 
+--Validar usuario unico por profesor
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Profesor_UsuarioUnico
+CREATE TRIGGER tr_Profesor_UsuarioUnico
 ON Profesor AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -814,9 +1147,10 @@ BEGIN
 END
 GO
 
+--Validar usuario unico por estudiante
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Estudiante_UsuarioUnico
+CREATE TRIGGER tr_Estudiante_UsuarioUnico
 ON Estudiante AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -839,9 +1173,10 @@ BEGIN
 END
 GO
 
+--Validar rol Profesor del usuario
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Profesor_ValidarRolUsuario
+CREATE TRIGGER tr_Profesor_ValidarRolUsuario
 ON Profesor AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -858,9 +1193,10 @@ BEGIN
 END
 GO
 
+--Validar rol Estudiante del usuario
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_Estudiante_ValidarRolUsuario
+CREATE TRIGGER tr_Estudiante_ValidarRolUsuario
 ON Estudiante AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -877,9 +1213,10 @@ BEGIN
 END
 GO
 
+--Validar promedio y estado de nota final
 USE InstitutoTECNIC;
 GO
-CREATE OR ALTER TRIGGER tr_NotaFinal_CheckPromedio
+CREATE TRIGGER tr_NotaFinal_CheckPromedio
 ON NotaFinal AFTER INSERT, UPDATE AS
 BEGIN
     SET NOCOUNT ON;
@@ -898,7 +1235,114 @@ BEGIN
 END
 GO
 
+--Impedir eliminar profesor de asignatura
 USE InstitutoTECNIC;
 GO
-SELECT COUNT(*) AS total_triggers FROM sys.triggers WHERE is_ms_shipped = 0;
+CREATE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor
+ON AsignaturaProfesor INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+    IF EXISTS (
+        SELECT 1
+        FROM deleted d
+        JOIN Asignatura a ON a.codigo_interno_asignatura = d.codigo_interno_asignatura
+    )
+    BEGIN
+        RAISERROR(N'No se puede eliminar el profesor asignado: toda asignatura debe tener un profesor.', 16, 1);
+        RETURN;
+    END
+    DELETE FROM AsignaturaProfesor
+    WHERE id_asignatura_profesor IN (SELECT id_asignatura_profesor FROM deleted);
+END
+GO
+
+--Actualizar antiguedad del profesor por fechas
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_AsignaturaProfesor_ActualizarAntiguedad
+ON AsignaturaProfesor
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF TRIGGER_NESTLEVEL() > 1
+        RETURN;
+
+    IF NOT EXISTS (SELECT 1 FROM inserted)
+        RETURN;
+
+    IF UPDATE(fecha_inicio_imparticion) OR UPDATE(fecha_fin_imparticion) OR NOT EXISTS (SELECT 1 FROM deleted)
+    BEGIN
+        DECLARE @ProfesorOficial TABLE
+        (
+            codigo_interno_profesor INT NOT NULL,
+            codigo_oficial          VARCHAR(20) NOT NULL
+        );
+
+        INSERT INTO @ProfesorOficial (codigo_interno_profesor, codigo_oficial)
+        SELECT DISTINCT pa.codigo_interno_profesor, a.codigo_oficial
+        FROM inserted i
+        INNER JOIN AsignaturaProfesor pa ON pa.id_asignatura_profesor = i.id_asignatura_profesor
+        INNER JOIN Asignatura a ON a.codigo_interno_asignatura = pa.codigo_interno_asignatura;
+
+        DECLARE @codigo_interno_profesor INT;
+        DECLARE @codigo_oficial VARCHAR(20);
+        DECLARE cur_antiguedad CURSOR LOCAL FAST_FORWARD FOR
+            SELECT codigo_interno_profesor, codigo_oficial FROM @ProfesorOficial;
+
+        OPEN cur_antiguedad;
+        FETCH NEXT FROM cur_antiguedad INTO @codigo_interno_profesor, @codigo_oficial;
+
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            EXEC sp_AsignaturaProfesor_ActualizarAntiguedad
+                @codigo_interno_profesor = @codigo_interno_profesor,
+                @codigo_oficial = @codigo_oficial;
+
+            FETCH NEXT FROM cur_antiguedad INTO @codigo_interno_profesor, @codigo_oficial;
+        END
+
+        CLOSE cur_antiguedad;
+        DEALLOCATE cur_antiguedad;
+    END
+END
+GO
+
+--Actualizar antiguedad del tutor por fechas
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Tutoria_ActualizarAntiguedad
+ON Tutoria
+AFTER INSERT, UPDATE
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF TRIGGER_NESTLEVEL() > 1
+        RETURN;
+
+    IF NOT EXISTS (SELECT 1 FROM inserted)
+        RETURN;
+
+    IF UPDATE(fecha_inicio_tutoria) OR UPDATE(fecha_fin_tutoria) OR NOT EXISTS (SELECT 1 FROM deleted)
+    BEGIN
+        DECLARE @id_tutoria INT;
+
+        DECLARE cur_tutoria CURSOR LOCAL FAST_FORWARD FOR
+            SELECT id_tutoria FROM inserted;
+
+        OPEN cur_tutoria;
+        FETCH NEXT FROM cur_tutoria INTO @id_tutoria;
+
+        WHILE @@FETCH_STATUS = 0
+        BEGIN
+            EXEC sp_Tutoria_ActualizarAntiguedad @id_tutoria = @id_tutoria;
+            FETCH NEXT FROM cur_tutoria INTO @id_tutoria;
+        END
+
+        CLOSE cur_tutoria;
+        DEALLOCATE cur_tutoria;
+    END
+END
 GO

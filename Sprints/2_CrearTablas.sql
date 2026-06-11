@@ -1,5 +1,5 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/7
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/9
    TABLAS
    ============================================================================ */
 
@@ -14,8 +14,6 @@ CREATE TABLE Sede
     CONSTRAINT PK_Sede        PRIMARY KEY (id_sede),
     CONSTRAINT UQ_Sede_nombre UNIQUE (nombre_sede)
 ) ON FG_Academico;
-GO
-EXEC sp_help Sede;
 GO
 
 
@@ -39,8 +37,6 @@ CREATE TABLE Aula
     CONSTRAINT CK_Aula_metros      CHECK (metros_cuadrados > 0)
 ) ON FG_Academico;
 GO
-EXEC sp_help Aula;
-GO
 
 -- TABLA: Ciclo (FG_Academico)
 USE InstitutoTECNIC;
@@ -52,10 +48,8 @@ CREATE TABLE Ciclo
     categoria            VARCHAR(50)  NOT NULL,
     CONSTRAINT PK_Ciclo           PRIMARY KEY (codigo_interno_ciclo),
     CONSTRAINT UQ_Ciclo_nombre    UNIQUE (nombre_ciclo),
-    CONSTRAINT CK_Ciclo_categoria CHECK (categoria IN ('Grado Medio', 'Grado Superior', 'Bachillerato Técnico'))
+    CONSTRAINT CK_Ciclo_categoria CHECK (categoria IN ('Grado Medio', 'Grado Superior', 'Bachillerato Tecnico'))
 ) ON FG_Academico;
-GO
-EXEC sp_help Ciclo;
 GO
 
 -- TABLA: Curso (FG_Academico)
@@ -71,8 +65,6 @@ CREATE TABLE Curso
     CONSTRAINT UQ_Curso_nivel_ciclo UNIQUE (codigo_interno_ciclo, nivel_curso),
     CONSTRAINT CK_Curso_nivel       CHECK (nivel_curso IN ('Primer Año', 'Segundo Año', 'Tercer Año'))
 ) ON FG_Academico;
-GO
-EXEC sp_help Curso;
 GO
 
 -- TABLA: Usuario (FG_Seguridad)
@@ -93,8 +85,6 @@ CREATE TABLE Usuario
     CONSTRAINT CK_Usuario_rol    CHECK (rol IN ('Administrador', 'Profesor', 'Estudiante', 'Usuario'))
 ) ON FG_Seguridad;
 GO
-EXEC sp_help Usuario;
-GO
 
 -- TABLA: Bitacora (FG_Seguridad)
 USE InstitutoTECNIC;
@@ -103,14 +93,12 @@ CREATE TABLE Bitacora
 (
     id_bitacora    INT IDENTITY(1,1) NOT NULL,
     accion         VARCHAR(200) NOT NULL,
-    fecha_bitacora DATETIME      NOT NULL DEFAULT (GETDATE()),
-    ip_equipo      VARCHAR(50)   NULL,
-    id_usuario     INT           NOT NULL,
+    fecha_bitacora DATETIME     NOT NULL DEFAULT (GETDATE()),
+    ip_equipo      VARCHAR(50)  NULL,
+    id_usuario     INT          NOT NULL,
     CONSTRAINT PK_Bitacora PRIMARY KEY (id_bitacora),
     CONSTRAINT FK_Bitacora_Usuario FOREIGN KEY (id_usuario) REFERENCES Usuario(id_usuario)
 ) ON FG_Seguridad;
-GO
-EXEC sp_help Bitacora;
 GO
 
 -- TABLA: Profesor (FG_Academico)
@@ -137,8 +125,6 @@ CREATE TABLE Profesor
     )
 ) ON FG_Academico;
 GO
-EXEC sp_help Profesor;
-GO
 
 -- TABLA: Periodo (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -154,34 +140,46 @@ CREATE TABLE Periodo
     CONSTRAINT CK_Periodo_nombre   CHECK (nombre_periodo IN ('I-Semestre', 'II-Semestre'))
 ) ON FG_Operaciones;
 GO
-EXEC sp_help Periodo;
-GO
 
 -- TABLA: Asignatura (FG_Academico)
+-- Instancia semestral: codigo_interno cambia cada periodo/aula.
+-- codigo_oficial identifica la materia (MEP) para acumular antiguedad del profesor.
 USE InstitutoTECNIC;
 GO
 CREATE TABLE Asignatura
 (
-    codigo_interno_asignatura      INT           IDENTITY(1,1) NOT NULL,
-    codigo_oficial                 VARCHAR(20)   NOT NULL,
-    nombre_asignatura              VARCHAR(100) NOT NULL,
-    duracion_horas_asignatura      INT           NOT NULL,
-    antiguedad_profesor            INT           NULL,
-    fecha_inicio_imparticion_profe DATE          NULL,
-    fecha_fin_imparticion_profe    DATE          NULL,
-    codigo_interno_profesor        INT           NOT NULL,
-    id_aula                        INT           NOT NULL,
-    id_periodo                     INT           NOT NULL,
-    CONSTRAINT PK_Asignatura              PRIMARY KEY (codigo_interno_asignatura),
-    CONSTRAINT FK_Asignatura_Profesor     FOREIGN KEY (codigo_interno_profesor) REFERENCES Profesor(codigo_interno_profesor),
-    CONSTRAINT FK_Asignatura_Aula         FOREIGN KEY (id_aula) REFERENCES Aula(id_aula),
-    CONSTRAINT FK_Asignatura_Periodo      FOREIGN KEY (id_periodo) REFERENCES Periodo(id_periodo),
-    CONSTRAINT CK_Asignatura_horas        CHECK (duracion_horas_asignatura > 0),
-    CONSTRAINT CK_Asignatura_antiguedad   CHECK (antiguedad_profesor IS NULL OR antiguedad_profesor >= 0),
-    CONSTRAINT CK_Asignatura_fechas       CHECK (fecha_fin_imparticion_profe IS NULL OR fecha_inicio_imparticion_profe IS NULL OR fecha_fin_imparticion_profe >= fecha_inicio_imparticion_profe)
+    codigo_interno_asignatura INT           IDENTITY(1,1) NOT NULL,
+    codigo_oficial              VARCHAR(20)   NOT NULL,
+    nombre_asignatura           VARCHAR(100) NOT NULL,
+    duracion_horas_asignatura   INT           NOT NULL,
+    id_aula                     INT           NOT NULL,
+    id_periodo                  INT           NOT NULL,
+    CONSTRAINT PK_Asignatura          PRIMARY KEY (codigo_interno_asignatura),
+    CONSTRAINT FK_Asignatura_Aula     FOREIGN KEY (id_aula) REFERENCES Aula(id_aula),
+    CONSTRAINT FK_Asignatura_Periodo  FOREIGN KEY (id_periodo) REFERENCES Periodo(id_periodo),
+    CONSTRAINT CK_Asignatura_horas    CHECK (duracion_horas_asignatura > 0)
 ) ON FG_Academico;
 GO
-EXEC sp_help Asignatura;
+
+-- TABLA: AsignaturaProfesor (FG_Academico)
+USE InstitutoTECNIC;
+GO
+CREATE TABLE AsignaturaProfesor
+(
+    id_asignatura_profesor    INT  IDENTITY(1,1) NOT NULL,
+    codigo_interno_profesor   INT  NOT NULL,
+    codigo_interno_asignatura INT  NOT NULL,
+    antiguedad_profesor       INT  NULL, 
+    fecha_inicio_imparticion  DATE NULL,
+    fecha_fin_imparticion     DATE NULL,
+    CONSTRAINT PK_AsignaturaProfesor  PRIMARY KEY (id_asignatura_profesor),
+    CONSTRAINT FK_AP_Profesor         FOREIGN KEY (codigo_interno_profesor) REFERENCES Profesor(codigo_interno_profesor),
+    CONSTRAINT FK_AP_Asignatura       FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
+    CONSTRAINT UQ_AP_par              UNIQUE (codigo_interno_profesor, codigo_interno_asignatura),
+    CONSTRAINT UQ_AP_asignatura       UNIQUE (codigo_interno_asignatura),
+    CONSTRAINT CK_AP_fechas           CHECK (fecha_fin_imparticion IS NULL OR fecha_inicio_imparticion IS NULL OR fecha_fin_imparticion >= fecha_inicio_imparticion),
+    CONSTRAINT CK_AP_antiguedad       CHECK (antiguedad_profesor IS NULL OR antiguedad_profesor >= 0)
+) ON FG_Academico;
 GO
 
 -- TABLA: BloqueHorario (FG_Operaciones)
@@ -196,8 +194,6 @@ CREATE TABLE BloqueHorario
     CONSTRAINT CK_BloqueHorario_num  CHECK (num_bloque BETWEEN 1 AND 6),
     CONSTRAINT CK_BloqueHorario_horas CHECK (hora_fin_bloque > hora_inicio_bloque)
 ) ON FG_Operaciones;
-GO
-EXEC sp_help BloqueHorario;
 GO
 
 -- TABLA: Horario (FG_Operaciones)
@@ -214,8 +210,6 @@ CREATE TABLE Horario
     CONSTRAINT UQ_Horario_slot     UNIQUE (dia_semana, num_bloque)
 ) ON FG_Operaciones;
 GO
-EXEC sp_help Horario;
-GO
 
 -- TABLA: HorarioAsignatura (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -230,8 +224,6 @@ CREATE TABLE HorarioAsignatura
     CONSTRAINT FK_HA_Asignatura       FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
     CONSTRAINT UQ_HA_horario_asig     UNIQUE (id_horario, codigo_interno_asignatura)
 ) ON FG_Operaciones;
-GO
-EXEC sp_help HorarioAsignatura;
 GO
 
 -- TABLA: AsignaturaCiclo (FG_Operaciones)
@@ -248,8 +240,6 @@ CREATE TABLE AsignaturaCiclo
     CONSTRAINT UQ_AC_par          UNIQUE (codigo_interno_asignatura, codigo_interno_ciclo)
 ) ON FG_Operaciones;
 GO
-EXEC sp_help AsignaturaCiclo;
-GO
 
 -- TABLA: AsignaturaCurso (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -265,8 +255,6 @@ CREATE TABLE AsignaturaCurso
     CONSTRAINT UQ_AsigCur_par        UNIQUE (codigo_interno_asignatura, id_curso)
 ) ON FG_Operaciones;
 GO
-EXEC sp_help AsignaturaCurso;
-GO
 
 -- TABLA: Prerrequisito (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -281,8 +269,6 @@ CREATE TABLE Prerrequisito
     CONSTRAINT CK_Prerrequisito_estado CHECK (estado_prerrequisito IN ('Activo', 'Inactivo', 'Eliminado'))
 ) ON FG_Operaciones;
 GO
-EXEC sp_help Prerrequisito;
-GO
 
 -- TABLA: AsignaturaPrerrequisito (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -293,12 +279,10 @@ CREATE TABLE AsignaturaPrerrequisito
     codigo_interno_asignatura   INT NOT NULL,
     id_prerrequisito            INT NOT NULL,
     CONSTRAINT PK_AsignaturaPrerrequisito PRIMARY KEY (id_asignatura_prerrequisito),
-    CONSTRAINT FK_AP_Asignatura             FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
-    CONSTRAINT FK_AP_Prerrequisito          FOREIGN KEY (id_prerrequisito) REFERENCES Prerrequisito(id_prerrequisito),
-    CONSTRAINT UQ_AP_par                    UNIQUE (codigo_interno_asignatura, id_prerrequisito)
+    CONSTRAINT FK_APR_Asignatura            FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
+    CONSTRAINT FK_APR_Prerrequisito         FOREIGN KEY (id_prerrequisito) REFERENCES Prerrequisito(id_prerrequisito),
+    CONSTRAINT UQ_APR_par                   UNIQUE (codigo_interno_asignatura, id_prerrequisito)
 ) ON FG_Operaciones;
-GO
-EXEC sp_help AsignaturaPrerrequisito;
 GO
 
 -- TABLA: Estudiante (FG_Academico)
@@ -330,8 +314,6 @@ CREATE TABLE Estudiante
     )
 ) ON FG_Academico;
 GO
-EXEC sp_help Estudiante;
-GO
 
 -- TABLA: Matricula (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -349,8 +331,6 @@ CREATE TABLE Matricula
     CONSTRAINT CK_Mat_estado     CHECK (estado_matricula IN ('Activa', 'Anulada', 'Finalizada'))
 ) ON FG_Operaciones;
 GO
-EXEC sp_help Matricula;
-GO
 
 -- TABLA: AsignaturaMatricula (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -365,8 +345,6 @@ CREATE TABLE AsignaturaMatricula
     CONSTRAINT FK_AM_Matricula          FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula) ON DELETE CASCADE,
     CONSTRAINT UQ_AM_par                UNIQUE (id_matricula, codigo_interno_asignatura)
 ) ON FG_Operaciones;
-GO
-EXEC sp_help AsignaturaMatricula;
 GO
 
 -- TABLA: NotaFinal (FG_Operaciones)
@@ -393,8 +371,6 @@ CREATE TABLE NotaFinal
     CONSTRAINT UQ_NF_unico        UNIQUE (id_estudiante, codigo_interno_asignatura)
 ) ON FG_Operaciones;
 GO
-EXEC sp_help NotaFinal;
-GO
 
 -- TABLA: Asistencia (FG_Operaciones)
 USE InstitutoTECNIC;
@@ -419,16 +395,15 @@ CREATE TABLE Asistencia
     CONSTRAINT UQ_Asis_unica      UNIQUE (id_estudiante, codigo_interno_asignatura, fecha_asistencia)
 ) ON FG_Operaciones;
 GO
-EXEC sp_help Asistencia;
-GO
 
 -- TABLA: Tutoria (FG_Operaciones)
+-- antiguedad_tutor = anos acumulados desde fecha_inicio_tutoria (proceso automatico).
 USE InstitutoTECNIC;
 GO
 CREATE TABLE Tutoria
 (
     id_tutoria              INT  IDENTITY(1,1) NOT NULL,
-    antiguedad_tutor        INT  NULL,
+    antiguedad_tutor        INT  NULL,  -- anos enteros desde fecha_inicio_tutoria
     fecha_inicio_tutoria    DATE NULL,
     fecha_fin_tutoria       DATE NULL,
     codigo_interno_profesor INT  NOT NULL,
@@ -440,6 +415,4 @@ CREATE TABLE Tutoria
     CONSTRAINT CK_Tutoria_antig  CHECK (antiguedad_tutor IS NULL OR antiguedad_tutor >= 0),
     CONSTRAINT CK_Tutoria_fechas CHECK (fecha_inicio_tutoria IS NULL OR fecha_fin_tutoria IS NULL OR fecha_fin_tutoria >= fecha_inicio_tutoria)
 ) ON FG_Operaciones;
-GO
-EXEC sp_help Tutoria;
 GO

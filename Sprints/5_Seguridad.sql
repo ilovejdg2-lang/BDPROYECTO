@@ -1,10 +1,11 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 5/7
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 5/9
    SEGURIDAD (ROLES, PERMISOS Y PROCEDIMIENTOS)
-   Tablas Usuario y Bitacora: ver 2_CrearTablas.sql (ON FG_Seguridad)
    ============================================================================ */
 
--- USUARIO ADMIN (requerido por triggers de bitacora en sprint 6)
+-- CRUD: USUARIO
+
+--Crear un usuario
 USE InstitutoTECNIC;
 GO
 CREATE PROCEDURE sp_Usuario_Insertar
@@ -136,6 +137,7 @@ USE InstitutoTECNIC;
 GO
 GRANT SELECT ON Asignatura TO rol_profesor;
 GRANT SELECT ON BloqueHorario TO rol_profesor;
+GRANT SELECT ON AsignaturaProfesor TO rol_profesor;
 GRANT SELECT ON Horario TO rol_profesor;
 GRANT SELECT ON HorarioAsignatura TO rol_profesor;
 GRANT SELECT ON Estudiante TO rol_profesor;
@@ -150,6 +152,7 @@ USE InstitutoTECNIC;
 GO
 GRANT SELECT ON Asignatura TO rol_estudiante;
 GRANT SELECT ON BloqueHorario TO rol_estudiante;
+GRANT SELECT ON AsignaturaProfesor TO rol_estudiante;
 GRANT SELECT ON Horario TO rol_estudiante;
 GRANT SELECT ON HorarioAsignatura TO rol_estudiante;
 GRANT SELECT ON NotaFinal TO rol_estudiante;
@@ -220,6 +223,238 @@ GO
 
 USE InstitutoTECNIC;
 GO
-SELECT nombre_usuario, rol, activo FROM Usuario;
+CREATE PROCEDURE sp_EstablecerContextoUsuario
+    @nombre_usuario VARCHAR(20),
+    @contrasena     VARCHAR(100)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @id_usuario INT;
+
+    SELECT @id_usuario = u.id_usuario
+    FROM Usuario u
+    WHERE u.nombre_usuario = @nombre_usuario
+      AND u.activo = 1
+      AND u.contrasena_usuario = CONVERT(VARCHAR(255), HASHBYTES('SHA2_256', @contrasena), 2);
+
+    IF @id_usuario IS NULL
+    BEGIN
+        RAISERROR('Error: Usuario o contraseña incorrectos.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'id_usuario', @value = @id_usuario;
+
+    SELECT u.id_usuario, u.nombre_usuario, u.rol, u.correo_usuario AS correo
+    FROM Usuario u
+    WHERE u.id_usuario = @id_usuario;
+END
 GO
 
+--Obtener un usuario
+USE InstitutoTECNIC;
+GO
+CREATE PROCEDURE sp_Usuario_Obtener
+    @id_usuario INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM Usuario WHERE id_usuario = @id_usuario)
+    BEGIN
+        RAISERROR('Error: El usuario con ID %d no existe.', 16, 1, @id_usuario);
+        RETURN;
+    END
+    SELECT id_usuario, nombre_usuario, correo_usuario, rol, activo, fecha_creacion
+    FROM Usuario WHERE id_usuario = @id_usuario;
+END
+GO
+
+--Actualizar un usuario
+USE InstitutoTECNIC;
+GO
+CREATE PROCEDURE sp_Usuario_Actualizar
+    @id_usuario       INT,
+    @correo_usuario   VARCHAR(100),
+    @rol              VARCHAR(25)
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @rol NOT IN ('Administrador', 'Profesor', 'Estudiante', 'Usuario')
+    BEGIN
+        RAISERROR('Error: Rol de usuario no valido.', 16, 1);
+        RETURN;
+    END
+
+    IF NOT EXISTS (SELECT 1 FROM Usuario WHERE id_usuario = @id_usuario)
+    BEGIN
+        RAISERROR('Error: El usuario con ID %d no existe.', 16, 1, @id_usuario);
+        RETURN;
+    END
+
+    IF EXISTS (
+        SELECT 1 FROM Usuario
+        WHERE correo_usuario = @correo_usuario AND id_usuario <> @id_usuario
+    )
+    BEGIN
+        RAISERROR('Error: Ya existe otro usuario con ese correo.', 16, 1);
+        RETURN;
+    END
+
+    UPDATE Usuario
+    SET correo_usuario = @correo_usuario,
+        rol = @rol
+    WHERE id_usuario = @id_usuario;
+END
+GO
+
+--Eliminar un usuario
+USE InstitutoTECNIC;
+GO
+CREATE PROCEDURE sp_Usuario_Eliminar
+    @id_usuario INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM Usuario WHERE id_usuario = @id_usuario)
+    BEGIN
+        RAISERROR('Error: El usuario con ID %d no existe.', 16, 1, @id_usuario);
+        RETURN;
+    END
+    IF EXISTS (SELECT 1 FROM Profesor WHERE id_usuario = @id_usuario)
+       OR EXISTS (SELECT 1 FROM Estudiante WHERE id_usuario = @id_usuario)
+    BEGIN
+        RAISERROR('Error: No se puede eliminar el usuario porque esta vinculado a un profesor o estudiante.', 16, 1);
+        RETURN;
+    END
+    IF EXISTS (SELECT 1 FROM Bitacora WHERE id_usuario = @id_usuario)
+    BEGIN
+        RAISERROR('Error: No se puede eliminar el usuario porque tiene registros en bitacora.', 16, 1);
+        RETURN;
+    END
+    DELETE FROM Usuario WHERE id_usuario = @id_usuario;
+END
+GO
+
+-- CRUD: BITACORA
+
+--Obtener un registro de bitacora
+USE InstitutoTECNIC;
+GO
+CREATE PROCEDURE sp_Bitacora_Obtener
+    @id_bitacora INT
+AS
+BEGIN
+    SET NOCOUNT ON;
+    IF NOT EXISTS (SELECT 1 FROM Bitacora WHERE id_bitacora = @id_bitacora)
+    BEGIN
+        RAISERROR('Error: El registro de bitacora no existe.', 16, 1);
+        RETURN;
+    END
+    SELECT b.id_bitacora, b.fecha_bitacora, b.accion, b.ip_equipo, b.id_usuario,
+           u.nombre_usuario, u.rol
+    FROM Bitacora b
+    INNER JOIN Usuario u ON u.id_usuario = b.id_usuario
+    WHERE b.id_bitacora = @id_bitacora;
+END
+GO
+
+--Consultar bitacora con filtros
+USE InstitutoTECNIC;
+GO
+CREATE PROCEDURE sp_Bitacora_Listar
+    @id_usuario   INT = NULL,
+    @fecha_desde  DATETIME = NULL,
+    @fecha_hasta  DATETIME = NULL,
+    @top          INT = 50
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @top IS NULL OR @top < 1
+        SET @top = 50;
+
+    SELECT TOP (@top)
+           b.id_bitacora,
+           b.fecha_bitacora,
+           u.nombre_usuario,
+           u.rol,
+           b.accion,
+           b.ip_equipo
+    FROM Bitacora b
+    INNER JOIN Usuario u ON u.id_usuario = b.id_usuario
+    WHERE (@id_usuario IS NULL OR b.id_usuario = @id_usuario)
+      AND (@fecha_desde IS NULL OR b.fecha_bitacora >= @fecha_desde)
+      AND (@fecha_hasta IS NULL OR b.fecha_bitacora <= @fecha_hasta)
+    ORDER BY b.fecha_bitacora DESC, b.id_bitacora DESC;
+END
+GO
+
+--Consultar bitacora por rol
+USE InstitutoTECNIC;
+GO
+CREATE PROCEDURE sp_Bitacora_ListarPorRol
+    @rol VARCHAR(25),
+    @top INT = 50
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF @top IS NULL OR @top < 1
+        SET @top = 50;
+
+    SELECT TOP (@top)
+           b.id_bitacora,
+           b.fecha_bitacora,
+           u.nombre_usuario,
+           u.rol,
+           b.accion,
+           b.ip_equipo
+    FROM Bitacora b
+    INNER JOIN Usuario u ON u.id_usuario = b.id_usuario
+    WHERE u.rol = @rol
+    ORDER BY b.fecha_bitacora DESC, b.id_bitacora DESC;
+END
+GO
+
+-- USUARIOS DE SQL SERVER VINCULADOS A ROLES
+USE master;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'tecnic_admin')
+    CREATE LOGIN tecnic_admin WITH PASSWORD = 'Admin#2026', CHECK_POLICY = OFF;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'tecnic_profesor')
+    CREATE LOGIN tecnic_profesor WITH PASSWORD = 'Profe#2026', CHECK_POLICY = OFF;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.server_principals WHERE name = 'tecnic_estudiante')
+    CREATE LOGIN tecnic_estudiante WITH PASSWORD = 'Estu#2026', CHECK_POLICY = OFF;
+GO
+
+USE InstitutoTECNIC;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'tecnic_admin')
+    CREATE USER tecnic_admin FOR LOGIN tecnic_admin;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'tecnic_profesor')
+    CREATE USER tecnic_profesor FOR LOGIN tecnic_profesor;
+GO
+IF NOT EXISTS (SELECT 1 FROM sys.database_principals WHERE name = 'tecnic_estudiante')
+    CREATE USER tecnic_estudiante FOR LOGIN tecnic_estudiante;
+GO
+
+USE InstitutoTECNIC;
+GO
+ALTER ROLE rol_administrador ADD MEMBER tecnic_admin;
+GO
+ALTER ROLE rol_profesor ADD MEMBER tecnic_profesor;
+GO
+ALTER ROLE rol_estudiante ADD MEMBER tecnic_estudiante;
+GO
+
+USE InstitutoTECNIC;
+GO
+GRANT EXECUTE ON SCHEMA::dbo TO rol_administrador;
+GRANT EXECUTE ON sp_ValidarLogin TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_EstablecerContextoUsuario TO rol_profesor, rol_estudiante;
+GO
