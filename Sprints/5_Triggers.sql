@@ -857,50 +857,81 @@ BEGIN
 END
 GO
 
---Impedir eliminar profesor con asignaturas activas
+--Impedir eliminar profesor con dependencias
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_Profesor_NoDeleteIfHasActiveAssignments
+CREATE TRIGGER tr_Profesor_NoEliminarConDependencias
 ON Profesor INSTEAD OF DELETE AS
 BEGIN
     SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_profesor') = 1
+    BEGIN
+        DELETE p FROM Profesor p INNER JOIN deleted d ON d.codigo_interno_profesor = p.codigo_interno_profesor;
+        RETURN;
+    END
+
     IF EXISTS (
         SELECT 1
         FROM deleted d
         JOIN AsignaturaProfesor pa ON pa.codigo_interno_profesor = d.codigo_interno_profesor
-        WHERE pa.fecha_fin_imparticion IS NULL
     )
     BEGIN
-        RAISERROR(N'No se puede eliminar un profesor que tiene asignaturas activas.', 16, 1);
-        ROLLBACK TRANSACTION;
+        RAISERROR(N'No se puede eliminar el profesor porque tiene asignaturas asignadas.', 16, 1);
+        RETURN;
     END
-    ELSE
+    IF EXISTS (
+        SELECT 1
+        FROM deleted d
+        JOIN Tutoria t ON t.codigo_interno_profesor = d.codigo_interno_profesor
+    )
     BEGIN
-        DELETE FROM Profesor WHERE codigo_interno_profesor IN (SELECT codigo_interno_profesor FROM deleted);
+        RAISERROR(N'No se puede eliminar el profesor porque tiene tutorias asociadas.', 16, 1);
+        RETURN;
     END
+
+    EXEC sp_set_session_context @key = N'eliminando_profesor', @value = 1;
+    DELETE FROM Profesor WHERE codigo_interno_profesor IN (SELECT codigo_interno_profesor FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_profesor', @value = NULL;
 END
 GO
 
---Impedir eliminar curso con asignaturas
+--Impedir eliminar curso con dependencias
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_Curso_NoDeleteIfHasAsignaturas
+CREATE TRIGGER tr_Curso_NoEliminarConDependencias
 ON Curso INSTEAD OF DELETE AS
 BEGIN
     SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_curso') = 1
+    BEGIN
+        DELETE c FROM Curso c INNER JOIN deleted d ON d.id_curso = c.id_curso;
+        RETURN;
+    END
+
     IF EXISTS (
         SELECT 1
         FROM deleted d
         JOIN AsignaturaCurso ac ON ac.id_curso = d.id_curso
     )
     BEGIN
-        RAISERROR(N'No se puede eliminar un curso que tiene asignaturas asociadas.', 16, 1);
-        ROLLBACK TRANSACTION;
+        RAISERROR(N'No se puede eliminar el curso porque tiene asignaturas asociadas.', 16, 1);
+        RETURN;
     END
-    ELSE
+    IF EXISTS (
+        SELECT 1
+        FROM deleted d
+        JOIN Tutoria t ON t.id_curso = d.id_curso
+    )
     BEGIN
-        DELETE FROM Curso WHERE id_curso IN (SELECT id_curso FROM deleted);
+        RAISERROR(N'No se puede eliminar el curso porque tiene una tutoria asociada.', 16, 1);
+        RETURN;
     END
+
+    EXEC sp_set_session_context @key = N'eliminando_curso', @value = 1;
+    DELETE FROM Curso WHERE id_curso IN (SELECT id_curso FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_curso', @value = NULL;
 END
 GO
 
@@ -1344,5 +1375,330 @@ BEGIN
         CLOSE cur_tutoria;
         DEALLOCATE cur_tutoria;
     END
+END
+GO
+
+-- ============================================================================
+-- IMPEDIR ELIMINAR REGISTROS CON DEPENDENCIAS (INTEGRIDAD REFERENCIAL)
+-- ============================================================================
+
+--Impedir eliminar sede con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Sede_NoEliminarConDependencias
+ON Sede INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_sede') = 1
+    BEGIN
+        DELETE s FROM Sede s INNER JOIN deleted d ON d.id_sede = s.id_sede;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Aula a ON a.id_sede = d.id_sede)
+    BEGIN
+        RAISERROR(N'No se puede eliminar la sede porque tiene aulas asociadas.', 16, 1);
+        RETURN;
+    END
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Matricula m ON m.id_sede = d.id_sede)
+    BEGIN
+        RAISERROR(N'No se puede eliminar la sede porque tiene matriculas asociadas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_sede', @value = 1;
+    DELETE FROM Sede WHERE id_sede IN (SELECT id_sede FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_sede', @value = NULL;
+END
+GO
+
+--Impedir eliminar aula con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Aula_NoEliminarConDependencias
+ON Aula INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_aula') = 1
+    BEGIN
+        DELETE a FROM Aula a INNER JOIN deleted d ON d.id_aula = a.id_aula;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Asignatura a ON a.id_aula = d.id_aula)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el aula porque tiene asignaturas asociadas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_aula', @value = 1;
+    DELETE FROM Aula WHERE id_aula IN (SELECT id_aula FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_aula', @value = NULL;
+END
+GO
+
+--Impedir eliminar ciclo con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Ciclo_NoEliminarConDependencias
+ON Ciclo INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_ciclo') = 1
+    BEGIN
+        DELETE c FROM Ciclo c INNER JOIN deleted d ON d.codigo_interno_ciclo = c.codigo_interno_ciclo;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Curso c ON c.codigo_interno_ciclo = d.codigo_interno_ciclo)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el ciclo porque tiene cursos asociados.', 16, 1);
+        RETURN;
+    END
+    IF EXISTS (SELECT 1 FROM deleted d JOIN AsignaturaCiclo ac ON ac.codigo_interno_ciclo = d.codigo_interno_ciclo)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el ciclo porque tiene asignaturas asociadas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_ciclo', @value = 1;
+    DELETE FROM Ciclo WHERE codigo_interno_ciclo IN (SELECT codigo_interno_ciclo FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_ciclo', @value = NULL;
+END
+GO
+
+--Impedir eliminar periodo con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Periodo_NoEliminarConDependencias
+ON Periodo INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_periodo') = 1
+    BEGIN
+        DELETE p FROM Periodo p INNER JOIN deleted d ON d.id_periodo = p.id_periodo;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Asignatura a ON a.id_periodo = d.id_periodo)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el periodo porque tiene asignaturas asociadas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_periodo', @value = 1;
+    DELETE FROM Periodo WHERE id_periodo IN (SELECT id_periodo FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_periodo', @value = NULL;
+END
+GO
+
+--Impedir eliminar asignatura con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Asignatura_NoEliminarConDependencias
+ON Asignatura INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_asignatura') = 1
+    BEGIN
+        DELETE a
+        FROM Asignatura a
+        INNER JOIN deleted d ON d.codigo_interno_asignatura = a.codigo_interno_asignatura;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN HorarioAsignatura ha ON ha.codigo_interno_asignatura = d.codigo_interno_asignatura)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN AsignaturaMatricula am ON am.codigo_interno_asignatura = d.codigo_interno_asignatura)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN NotaFinal nf ON nf.codigo_interno_asignatura = d.codigo_interno_asignatura)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN Asistencia asi ON asi.codigo_interno_asignatura = d.codigo_interno_asignatura)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN AsignaturaCiclo ac ON ac.codigo_interno_asignatura = d.codigo_interno_asignatura)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN AsignaturaCurso acu ON acu.codigo_interno_asignatura = d.codigo_interno_asignatura)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN AsignaturaPrerrequisito ap ON ap.codigo_interno_asignatura = d.codigo_interno_asignatura)
+    BEGIN
+        RAISERROR(N'No se puede eliminar la asignatura porque tiene registros dependientes.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_asignatura', @value = 1;
+    DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
+    DELETE FROM AsignaturaProfesor
+    WHERE codigo_interno_asignatura IN (SELECT codigo_interno_asignatura FROM deleted);
+    ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
+    DELETE FROM Asignatura
+    WHERE codigo_interno_asignatura IN (SELECT codigo_interno_asignatura FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_asignatura', @value = NULL;
+END
+GO
+
+--Impedir eliminar estudiante con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Estudiante_NoEliminarConDependencias
+ON Estudiante INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_estudiante') = 1
+    BEGIN
+        DELETE e FROM Estudiante e INNER JOIN deleted d ON d.id_estudiante = e.id_estudiante;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Matricula m ON m.id_estudiante = d.id_estudiante)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el estudiante porque tiene matriculas asociadas.', 16, 1);
+        RETURN;
+    END
+    IF EXISTS (SELECT 1 FROM deleted d JOIN NotaFinal nf ON nf.id_estudiante = d.id_estudiante)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN Asistencia a ON a.id_estudiante = d.id_estudiante)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el estudiante porque tiene notas o asistencias registradas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_estudiante', @value = 1;
+    DELETE FROM Estudiante WHERE id_estudiante IN (SELECT id_estudiante FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_estudiante', @value = NULL;
+END
+GO
+
+--Impedir eliminar bloque horario con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_BloqueHorario_NoEliminarConDependencias
+ON BloqueHorario INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_bloque') = 1
+    BEGIN
+        DELETE b FROM BloqueHorario b INNER JOIN deleted d ON d.num_bloque = b.num_bloque;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Horario h ON h.num_bloque = d.num_bloque)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el bloque porque tiene horarios asociados.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_bloque', @value = 1;
+    DELETE FROM BloqueHorario WHERE num_bloque IN (SELECT num_bloque FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_bloque', @value = NULL;
+END
+GO
+
+--Impedir eliminar horario con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Horario_NoEliminarConDependencias
+ON Horario INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_horario') = 1
+    BEGIN
+        DELETE h FROM Horario h INNER JOIN deleted d ON d.id_horario = h.id_horario;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN HorarioAsignatura ha ON ha.id_horario = d.id_horario)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el horario porque tiene asignaturas asignadas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_horario', @value = 1;
+    DELETE FROM Horario WHERE id_horario IN (SELECT id_horario FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_horario', @value = NULL;
+END
+GO
+
+--Impedir eliminar prerrequisito con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Prerrequisito_NoEliminarConDependencias
+ON Prerrequisito INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_prerrequisito') = 1
+    BEGIN
+        DELETE p FROM Prerrequisito p INNER JOIN deleted d ON d.id_prerrequisito = p.id_prerrequisito;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN AsignaturaPrerrequisito ap ON ap.id_prerrequisito = d.id_prerrequisito)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el prerrequisito porque esta asignado a asignaturas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_prerrequisito', @value = 1;
+    DELETE FROM Prerrequisito WHERE id_prerrequisito IN (SELECT id_prerrequisito FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_prerrequisito', @value = NULL;
+END
+GO
+
+--Impedir eliminar matricula con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Matricula_NoEliminarConDependencias
+ON Matricula INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_matricula') = 1
+    BEGIN
+        DELETE m FROM Matricula m INNER JOIN deleted d ON d.id_matricula = m.id_matricula;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN AsignaturaMatricula am ON am.id_matricula = d.id_matricula)
+    BEGIN
+        RAISERROR(N'No se puede eliminar la matricula porque tiene asignaturas inscritas.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_matricula', @value = 1;
+    DELETE FROM Matricula WHERE id_matricula IN (SELECT id_matricula FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_matricula', @value = NULL;
+END
+GO
+
+--Impedir eliminar usuario con dependencias
+USE InstitutoTECNIC;
+GO
+CREATE TRIGGER tr_Usuario_NoEliminarConDependencias
+ON Usuario INSTEAD OF DELETE AS
+BEGIN
+    SET NOCOUNT ON;
+
+    IF SESSION_CONTEXT(N'eliminando_usuario') = 1
+    BEGIN
+        DELETE u FROM Usuario u INNER JOIN deleted d ON d.id_usuario = u.id_usuario;
+        RETURN;
+    END
+
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Profesor p ON p.id_usuario = d.id_usuario)
+       OR EXISTS (SELECT 1 FROM deleted d JOIN Estudiante e ON e.id_usuario = d.id_usuario)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el usuario porque esta vinculado a un profesor o estudiante.', 16, 1);
+        RETURN;
+    END
+    IF EXISTS (SELECT 1 FROM deleted d JOIN Bitacora b ON b.id_usuario = d.id_usuario)
+    BEGIN
+        RAISERROR(N'No se puede eliminar el usuario porque tiene registros en bitacora.', 16, 1);
+        RETURN;
+    END
+
+    EXEC sp_set_session_context @key = N'eliminando_usuario', @value = 1;
+    DELETE FROM Usuario WHERE id_usuario IN (SELECT id_usuario FROM deleted);
+    EXEC sp_set_session_context @key = N'eliminando_usuario', @value = NULL;
 END
 GO

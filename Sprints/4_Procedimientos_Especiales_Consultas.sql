@@ -1,6 +1,6 @@
 /* ============================================================================
    PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 4/11
-   PROCEDIMIENTOS DE CONSULTAS CON JOINS
+   PROCEDIMIENTOS ESPECIALES Y CONSULTAS
    ============================================================================ */
 
 --Consultar asignaturas por bloque horario

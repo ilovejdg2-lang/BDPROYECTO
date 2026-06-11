@@ -340,7 +340,7 @@ CREATE TABLE AsignaturaMatricula
     id_matricula              INT NOT NULL,
     CONSTRAINT PK_AsignaturaMatricula PRIMARY KEY (id_asignatura_matricula),
     CONSTRAINT FK_AM_Asignatura         FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
-    CONSTRAINT FK_AM_Matricula          FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula) ON DELETE CASCADE,
+    CONSTRAINT FK_AM_Matricula          FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula),
     CONSTRAINT UQ_AM_par                UNIQUE (id_matricula, codigo_interno_asignatura)
 ) ON FG_Operaciones;
 GO

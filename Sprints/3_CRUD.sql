@@ -2074,6 +2074,11 @@ BEGIN
         RAISERROR('Error: La matricula con ID %d no existe.', 16, 1, @id_matricula);
         RETURN;
     END
+    IF EXISTS (SELECT 1 FROM AsignaturaMatricula WHERE id_matricula = @id_matricula)
+    BEGIN
+        RAISERROR('Error: No se puede eliminar la matricula porque tiene asignaturas inscritas.', 16, 1);
+        RETURN;
+    END
     DELETE FROM Matricula WHERE id_matricula = @id_matricula;
 END
 GO
