@@ -1,6 +1,6 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 7/9
-   CONSULTAS
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 8/11
+   PRUEBAS DE CONSULTAS CON JOINS
    ============================================================================ */
 
 -- CONSULTAS DEL ENUNCIADO

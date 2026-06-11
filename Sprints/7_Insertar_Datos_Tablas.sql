@@ -1,5 +1,5 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 6/9
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 7/11
    INSERCION DE DATOS EN LAS TABLAS
    ============================================================================ */
 

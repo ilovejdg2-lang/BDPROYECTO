@@ -1,9 +1,6 @@
 /* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 11/11
-   PROCESO DE MATRICULA (VALIDACIONES)
-   ============================================================================
-   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6 y 10
-   Estos casos deben generar errores controlados.
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 12 
+   DEMOSTRACION DE ERRORES: matricula, notas y eliminacion con dependencias
    ============================================================================ */
 
 -- Administrador: intentar ofertar una asignatura invalida
@@ -71,4 +68,53 @@ EXEC sp_ProcesoMatricula_ProfesorEvaluarEstudiante
     @estado_nota = 'Aprobado';
 GO
 REVERT;
+GO
+
+-- ELIMINACION CON DEPENDENCIAS (cada bloque debe mostrar error)
+-- Aula con asignaturas asociadas
+USE InstitutoTECNIC;
+GO
+EXEC sp_Aula_Eliminar @id_aula = 1;
+GO
+
+-- Sede con aulas o matriculas asociadas
+USE InstitutoTECNIC;
+GO
+EXEC sp_Sede_Eliminar @id_sede = 1;
+GO
+
+-- Ciclo con cursos o asignaturas asociadas
+USE InstitutoTECNIC;
+GO
+EXEC sp_Ciclo_Eliminar @codigo_interno_ciclo = 1;
+GO
+
+-- Periodo con asignaturas asociadas
+USE InstitutoTECNIC;
+GO
+EXEC sp_Periodo_Eliminar @id_periodo = 1;
+GO
+
+-- Profesor con materias o tutorias asociadas
+USE InstitutoTECNIC;
+GO
+EXEC sp_Profesor_Eliminar @codigo_interno_profesor = 1;
+GO
+
+-- Estudiante con matriculas, notas o asistencias
+USE InstitutoTECNIC;
+GO
+EXEC sp_Estudiante_Eliminar @id_estudiante = 1;
+GO
+
+-- Matricula con asignaturas inscritas
+USE InstitutoTECNIC;
+GO
+EXEC sp_Matricula_Eliminar @id_matricula = 1;
+GO
+
+-- Usuario admin con registros en bitacora
+USE InstitutoTECNIC;
+GO
+EXEC sp_Usuario_Eliminar @id_usuario = 1;
 GO

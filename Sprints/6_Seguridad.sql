@@ -1,6 +1,6 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 5/9
-   SEGURIDAD (ROLES, PERMISOS Y PROCEDIMIENTOS)
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 6/11
+   SEGURIDAD 
    ============================================================================ */
 
 -- CRUD: USUARIO

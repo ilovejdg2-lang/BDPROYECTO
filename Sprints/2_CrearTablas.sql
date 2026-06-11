@@ -1,5 +1,5 @@
 ﻿/* ============================================================================
-   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/9
+   PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 2/11
    TABLAS
    ============================================================================ */
 
@@ -142,8 +142,6 @@ CREATE TABLE Periodo
 GO
 
 -- TABLA: Asignatura (FG_Academico)
--- Instancia semestral: codigo_interno cambia cada periodo/aula.
--- codigo_oficial identifica la materia (MEP) para acumular antiguedad del profesor.
 USE InstitutoTECNIC;
 GO
 CREATE TABLE Asignatura
@@ -342,7 +340,7 @@ CREATE TABLE AsignaturaMatricula
     id_matricula              INT NOT NULL,
     CONSTRAINT PK_AsignaturaMatricula PRIMARY KEY (id_asignatura_matricula),
     CONSTRAINT FK_AM_Asignatura         FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
-    CONSTRAINT FK_AM_Matricula          FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula) ON DELETE CASCADE,
+    CONSTRAINT FK_AM_Matricula          FOREIGN KEY (id_matricula) REFERENCES Matricula(id_matricula),
     CONSTRAINT UQ_AM_par                UNIQUE (id_matricula, codigo_interno_asignatura)
 ) ON FG_Operaciones;
 GO
@@ -396,14 +394,13 @@ CREATE TABLE Asistencia
 ) ON FG_Operaciones;
 GO
 
--- TABLA: Tutoria (FG_Operaciones)
--- antiguedad_tutor = anos acumulados desde fecha_inicio_tutoria (proceso automatico).
+-- TABLA: Tutoria (FG_Operaciones).
 USE InstitutoTECNIC;
 GO
 CREATE TABLE Tutoria
 (
     id_tutoria              INT  IDENTITY(1,1) NOT NULL,
-    antiguedad_tutor        INT  NULL,  -- anos enteros desde fecha_inicio_tutoria
+    antiguedad_tutor        INT  NULL, 
     fecha_inicio_tutoria    DATE NULL,
     fecha_fin_tutoria       DATE NULL,
     codigo_interno_profesor INT  NOT NULL,
