@@ -1,14 +1,20 @@
 /* ============================================================================
    PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 10/11
    PROCESO DE MATRICULA (FLUJO CORRECTO)
+   ============================================================================
+   Requiere ejecutar antes: 1, 2, 3, 4, 5 y 6
    ============================================================================ */
 
+-- Administrador: ofertar asignatura
 USE InstitutoTECNIC;
 GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'admin', @contrasena = 'Admin#2026';
+EXECUTE AS USER = 'tecnic_admin';
 GO
-
-USE InstitutoTECNIC;
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'admin',
+    @contrasena = 'Admin#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_AdminOfertarAsignatura
     @codigo_oficial = 'DEMO-401',
@@ -21,18 +27,21 @@ EXEC sp_ProcesoMatricula_AdminOfertarAsignatura
     @codigo_interno_ciclo = 4,
     @fecha_inicio_imparticion_profe = '2026-02-01';
 GO
-
-USE InstitutoTECNIC;
-GO
 EXEC sp_Bitacora_ListarPorRol @rol = 'Administrador', @top = 3;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'dinia.medina', @contrasena = 'Profe#2026';
+REVERT;
 GO
 
+-- Profesor: cerrar prerrequisito de Administracion General
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_profesor';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'dinia.medina',
+    @contrasena = 'Profe#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_NotaFinal_Actualizar
     @id_estudiante = 5,
@@ -40,13 +49,19 @@ EXEC sp_NotaFinal_Actualizar
     @promedio_final = 82.00,
     @estado_nota = 'Aprobado';
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'jose.jimenez', @contrasena = 'Profe#2026';
+REVERT;
 GO
 
+-- Profesor: cerrar prerrequisito de Ingles Tecnico
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_profesor';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'dinia.medina',
+    @contrasena = 'Profe#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_NotaFinal_Actualizar
     @id_estudiante = 5,
@@ -54,18 +69,35 @@ EXEC sp_NotaFinal_Actualizar
     @promedio_final = 76.00,
     @estado_nota = 'Aprobado';
 GO
+REVERT;
+GO
 
+-- Administrador: consultar bitacora de profesores
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_admin';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'admin',
+    @contrasena = 'Admin#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_Bitacora_ListarPorRol @rol = 'Profesor', @top = 4;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'yeisson.villalobos', @contrasena = 'Estu#2026';
+REVERT;
 GO
 
+-- Estudiante: inscribir asignatura
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_estudiante';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'yeisson.villalobos',
+    @contrasena = 'Estu#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_EstudianteInscribir
     @id_estudiante = 5,
@@ -75,18 +107,35 @@ EXEC sp_ProcesoMatricula_EstudianteInscribir
     @id_periodo = 7,
     @finalizar_anterior = 1;
 GO
+REVERT;
+GO
 
+-- Administrador: consultar bitacora de estudiantes
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_admin';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'admin',
+    @contrasena = 'Admin#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_Bitacora_ListarPorRol @rol = 'Estudiante', @top = 5;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'sofia.mora', @contrasena = 'Profe#2026';
+REVERT;
 GO
 
+-- Profesor: registrar asistencia y nota final de la asignatura nueva
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_profesor';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'sofia.mora',
+    @contrasena = 'Profe#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_ProfesorEvaluarEstudiante
     @id_estudiante = 5,
@@ -96,16 +145,31 @@ EXEC sp_ProcesoMatricula_ProfesorEvaluarEstudiante
     @promedio_final = 88.50,
     @estado_nota = 'Aprobado';
 GO
+REVERT;
+GO
 
+-- Administrador: consultar auditoria final
 USE InstitutoTECNIC;
 GO
+EXECUTE AS USER = 'tecnic_admin';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'admin',
+    @contrasena = 'Admin#2026';
+GO
+EXEC sp_VerificarSesionActual;
+GO
+DECLARE @id_usuario_sofia INT;
+
+SELECT @id_usuario_sofia = id_usuario
+FROM Usuario
+WHERE nombre_usuario = 'sofia.mora';
+
 EXEC sp_Bitacora_Listar
-    @id_usuario = (SELECT id_usuario FROM Usuario WHERE nombre_usuario = 'sofia.mora'),
+    @id_usuario = @id_usuario_sofia,
     @top = 6;
 GO
 
-USE InstitutoTECNIC;
-GO
 SELECT
     u.rol,
     u.nombre_usuario,
@@ -117,4 +181,6 @@ WHERE u.nombre_usuario IN (
     'admin', 'dinia.medina', 'jose.jimenez', 'yeisson.villalobos', 'sofia.mora'
 )
 ORDER BY b.id_bitacora DESC;
+GO
+REVERT;
 GO

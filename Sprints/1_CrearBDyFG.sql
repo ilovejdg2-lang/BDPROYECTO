@@ -10,11 +10,11 @@ GO
 CREATE DATABASE InstitutoTECNIC
 ON PRIMARY
 ( NAME = 'TECNIC_Data',
-  FILENAME = 'C:\SQL Data\TECNIC_Data.mdf',
+  FILENAME = 'C:\SQLData\TECNIC_Data.mdf',
   SIZE = 512MB, MAXSIZE = 7GB, FILEGROWTH = 256MB )
 LOG ON
 ( NAME = 'TECNIC_Log',
-  FILENAME = 'C:\SQL LOG\TECNIC_Log.ldf',
+  FILENAME = 'C:\SQLLOG\TECNIC_Log.ldf',
   SIZE = 512MB, MAXSIZE = 8GB, FILEGROWTH = 256MB );
 GO
 
@@ -27,7 +27,7 @@ GO
 USE master;
 GO
 ALTER DATABASE InstitutoTECNIC ADD FILE
-( NAME = 'TECNIC_Academico1', FILENAME = 'C:\SQL Data\TECNIC_Academico1.ndf',
+( NAME = 'TECNIC_Academico1', FILENAME = 'C:\SQLData\TECNIC_Academico1.ndf',
   SIZE = 1024MB, MAXSIZE = 8GB, FILEGROWTH = 512MB ) TO FILEGROUP FG_Academico;
 GO
 
@@ -39,7 +39,7 @@ GO
 USE master;
 GO
 ALTER DATABASE InstitutoTECNIC ADD FILE
-( NAME = 'TECNIC_Operaciones1', FILENAME = 'C:\SQL Data\TECNIC_Operaciones1.ndf',
+( NAME = 'TECNIC_Operaciones1', FILENAME = 'C:\SQLData\TECNIC_Operaciones1.ndf',
   SIZE = 1024MB, MAXSIZE = 12GB, FILEGROWTH = 512MB ) TO FILEGROUP FG_Operaciones;
 GO
 
@@ -51,7 +51,7 @@ GO
 USE master;
 GO
 ALTER DATABASE InstitutoTECNIC ADD FILE
-( NAME = 'TECNIC_Seguridad1', FILENAME = 'C:\SQL Data\TECNIC_Seguridad1.ndf',
+( NAME = 'TECNIC_Seguridad1', FILENAME = 'C:\SQLData\TECNIC_Seguridad1.ndf',
   SIZE = 256MB, MAXSIZE = 7GB, FILEGROWTH = 128MB ) TO FILEGROUP FG_Seguridad;
 GO
 

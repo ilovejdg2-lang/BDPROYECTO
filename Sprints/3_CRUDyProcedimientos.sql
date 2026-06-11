@@ -884,14 +884,29 @@ CREATE PROCEDURE sp_AsignaturaProfesor_Eliminar
 AS
 BEGIN
     SET NOCOUNT ON;
+    DECLARE @trigger_deshabilitado BIT = 0;
+
     IF NOT EXISTS (SELECT 1 FROM AsignaturaProfesor WHERE id_asignatura_profesor = @id_asignatura_profesor)
     BEGIN
         RAISERROR('Error: La asignacion profesor-asignatura con ID %d no existe.', 16, 1, @id_asignatura_profesor);
         RETURN;
     END
-    DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
-    DELETE FROM AsignaturaProfesor WHERE id_asignatura_profesor = @id_asignatura_profesor;
-    ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
+
+    BEGIN TRY
+        EXEC('DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        SET @trigger_deshabilitado = 1;
+
+        DELETE FROM AsignaturaProfesor WHERE id_asignatura_profesor = @id_asignatura_profesor;
+
+        EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        SET @trigger_deshabilitado = 0;
+    END TRY
+    BEGIN CATCH
+        IF @trigger_deshabilitado = 1
+            EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+
+        THROW;
+    END CATCH
 END
 GO
 
@@ -1252,14 +1267,14 @@ CREATE PROCEDURE sp_Asignatura_Eliminar
 AS
 BEGIN
     SET NOCOUNT ON;
+    DECLARE @trigger_deshabilitado BIT = 0;
+
     IF NOT EXISTS (SELECT 1 FROM Asignatura WHERE codigo_interno_asignatura = @codigo_interno_asignatura)
     BEGIN
         RAISERROR('Error: La asignatura con ID %d no existe.', 16, 1, @codigo_interno_asignatura);
         RETURN;
     END
-    DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
-    DELETE FROM AsignaturaProfesor WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
-    ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
+
     IF EXISTS (SELECT 1 FROM HorarioAsignatura WHERE codigo_interno_asignatura = @codigo_interno_asignatura)
        OR EXISTS (SELECT 1 FROM AsignaturaMatricula WHERE codigo_interno_asignatura = @codigo_interno_asignatura)
        OR EXISTS (SELECT 1 FROM NotaFinal WHERE codigo_interno_asignatura = @codigo_interno_asignatura)
@@ -1271,7 +1286,23 @@ BEGIN
         RAISERROR('Error: No se puede eliminar la asignatura porque tiene registros dependientes.', 16, 1);
         RETURN;
     END
-    DELETE FROM Asignatura WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
+
+    BEGIN TRY
+        EXEC('DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        SET @trigger_deshabilitado = 1;
+
+        DELETE FROM AsignaturaProfesor WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
+        DELETE FROM Asignatura WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
+
+        EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        SET @trigger_deshabilitado = 0;
+    END TRY
+    BEGIN CATCH
+        IF @trigger_deshabilitado = 1
+            EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+
+        THROW;
+    END CATCH
 END
 GO
 
@@ -3223,16 +3254,23 @@ BEGIN
         RAISERROR('Error: El estudiante no existe.', 16, 1);
         RETURN;
     END
-    SELECT e.nombre_estudiante,
-           e.apellido1_estudiante,
-           COUNT(CASE WHEN nf.estado_nota = 'Aprobado' THEN 1 END) AS aprobadas,
-           COUNT(CASE WHEN nf.estado_nota = 'Reprobado' THEN 1 END) AS reprobadas,
-           COUNT(CASE WHEN nf.estado_nota = 'En curso' THEN 1 END) AS en_curso,
-           AVG(CASE WHEN nf.estado_nota = 'Aprobado' THEN nf.promedio_final END) AS promedio_aprobadas
-    FROM Estudiante e
-    LEFT JOIN NotaFinal nf ON nf.id_estudiante = e.id_estudiante
-    WHERE e.id_estudiante = @id_estudiante
-    GROUP BY e.nombre_estudiante, e.apellido1_estudiante;
+        SELECT e.nombre_estudiante,
+            e.apellido1_estudiante,
+            COUNT(CASE WHEN nf.estado_nota = 'Aprobado' THEN 1 END) AS aprobadas,
+            COUNT(CASE WHEN nf.estado_nota = 'Reprobado' THEN 1 END) AS reprobadas,
+            COUNT(CASE WHEN nf.estado_nota = 'En curso' THEN 1 END) AS en_curso,
+            pa.promedio_aprobadas
+        FROM Estudiante e
+        LEFT JOIN NotaFinal nf ON nf.id_estudiante = e.id_estudiante
+        OUTER APPLY (
+         SELECT AVG(nf_aprobadas.promedio_final) AS promedio_aprobadas
+         FROM NotaFinal nf_aprobadas
+         WHERE nf_aprobadas.id_estudiante = e.id_estudiante
+           AND nf_aprobadas.estado_nota = 'Aprobado'
+           AND nf_aprobadas.promedio_final IS NOT NULL
+        ) pa
+        WHERE e.id_estudiante = @id_estudiante
+        GROUP BY e.nombre_estudiante, e.apellido1_estudiante, pa.promedio_aprobadas;
 END
 GO
 

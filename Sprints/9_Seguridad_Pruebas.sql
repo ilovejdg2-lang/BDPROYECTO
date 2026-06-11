@@ -22,14 +22,48 @@ GO
 EXEC sp_ValidarLogin @nombre_usuario = 'yeisson.villalobos', @contrasena = 'Estu#2026';
 GO
 
---Establecer contexto de sesion (administrador)
+--Verificar sesion como administrador
 USE InstitutoTECNIC;
 GO
+EXECUTE AS USER = 'tecnic_admin';
+GO
 EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'admin', @contrasena = 'Admin#2026';
+GO
+EXEC sp_VerificarSesionActual;
+GO
+REVERT;
+GO
+
+--Verificar sesion como profesor
+USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_profesor';
+GO
+EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'jose.jimenez', @contrasena = 'Profe#2026';
+GO
+EXEC sp_VerificarSesionActual;
+GO
+REVERT;
+GO
+
+--Verificar sesion como estudiante
+USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_estudiante';
+GO
+EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'yeisson.villalobos', @contrasena = 'Estu#2026';
+GO
+EXEC sp_VerificarSesionActual;
+GO
+REVERT;
 GO
 
 --Obtener usuario administrador
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_admin';
+GO
+EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'admin', @contrasena = 'Admin#2026';
 GO
 DECLARE @id_usuario INT;
 SELECT @id_usuario = id_usuario FROM Usuario WHERE nombre_usuario = 'admin';
@@ -121,11 +155,15 @@ DECLARE @id_bitacora INT;
 SELECT @id_bitacora = MAX(id_bitacora) FROM Bitacora;
 EXEC sp_Bitacora_Obtener @id_bitacora = @id_bitacora;
 GO
+REVERT;
+GO
 
 --Permisos del rol profesor (lectura y notas/asistencias)
 USE InstitutoTECNIC;
 GO
 EXECUTE AS USER = 'tecnic_profesor';
+EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'jose.jimenez', @contrasena = 'Profe#2026';
+EXEC sp_VerificarSesionActual;
 SELECT TOP 3 codigo_interno_asignatura, codigo_oficial, nombre_asignatura FROM Asignatura;
 SELECT TOP 3 id_nota_final, id_estudiante, codigo_interno_asignatura, promedio_final FROM NotaFinal;
 REVERT;
@@ -135,6 +173,8 @@ GO
 USE InstitutoTECNIC;
 GO
 EXECUTE AS USER = 'tecnic_estudiante';
+EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'yeisson.villalobos', @contrasena = 'Estu#2026';
+EXEC sp_VerificarSesionActual;
 SELECT TOP 3 codigo_interno_asignatura, codigo_oficial, nombre_asignatura FROM Asignatura;
 SELECT TOP 3 id_nota_final, id_estudiante, codigo_interno_asignatura, promedio_final FROM NotaFinal;
 REVERT;
@@ -144,6 +184,8 @@ GO
 USE InstitutoTECNIC;
 GO
 EXECUTE AS USER = 'tecnic_admin';
+EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'admin', @contrasena = 'Admin#2026';
+EXEC sp_VerificarSesionActual;
 SELECT TOP 5 id_usuario, nombre_usuario, rol, activo FROM Usuario ORDER BY id_usuario;
 EXEC sp_Bitacora_Listar @top = 5;
 REVERT;
@@ -152,11 +194,19 @@ GO
 --Contexto de profesor y consulta de bitacora filtrada
 USE InstitutoTECNIC;
 GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'jose.jimenez', @contrasena = 'Profe#2026';
+EXECUTE AS USER = 'tecnic_admin';
 GO
-USE InstitutoTECNIC;
+EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'admin', @contrasena = 'Admin#2026';
 GO
+DECLARE @id_usuario_jose INT;
+
+SELECT @id_usuario_jose = id_usuario
+FROM Usuario
+WHERE nombre_usuario = 'jose.jimenez';
+
 EXEC sp_Bitacora_Listar
-    @id_usuario = (SELECT id_usuario FROM Usuario WHERE nombre_usuario = 'jose.jimenez'),
+    @id_usuario = @id_usuario_jose,
     @top = 5;
+GO
+REVERT;
 GO

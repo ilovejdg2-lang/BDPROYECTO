@@ -127,7 +127,8 @@ IF DATABASE_PRINCIPAL_ID('rol_estudiante') IS NULL
     CREATE ROLE rol_estudiante;
 GO
 
--- PERMISOS POR ROL
+
+-- Roles de administrador (control total sobre la base de datos)
 USE InstitutoTECNIC;
 GO
 GRANT CONTROL ON SCHEMA::dbo TO rol_administrador;
@@ -148,6 +149,7 @@ GRANT SELECT, INSERT, UPDATE ON NotaFinal TO rol_profesor;
 GRANT SELECT, INSERT, UPDATE ON Asistencia TO rol_profesor;
 GO
 
+-- Roles de estudiante (lectura de asignaturas, horarios y notas)
 USE InstitutoTECNIC;
 GO
 GRANT SELECT ON Asignatura TO rol_estudiante;
@@ -249,6 +251,30 @@ BEGIN
     SELECT u.id_usuario, u.nombre_usuario, u.rol, u.correo_usuario AS correo
     FROM Usuario u
     WHERE u.id_usuario = @id_usuario;
+END
+GO
+
+--Consultar el login SQL, rol de base de datos y usuario logico actual
+USE InstitutoTECNIC;
+GO
+CREATE PROCEDURE sp_VerificarSesionActual
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    DECLARE @id_usuario_sesion INT = TRY_CAST(SESSION_CONTEXT(N'id_usuario') AS INT);
+
+    SELECT
+        SUSER_NAME() AS login_sql_server,
+        USER_NAME() AS usuario_base_datos,
+        IS_MEMBER('rol_administrador') AS es_rol_administrador,
+        IS_MEMBER('rol_profesor') AS es_rol_profesor,
+        IS_MEMBER('rol_estudiante') AS es_rol_estudiante,
+        @id_usuario_sesion AS id_usuario_sesion,
+        u.nombre_usuario AS usuario_logico,
+        u.rol AS rol_logico
+    FROM (SELECT 1 AS x) s
+    LEFT JOIN Usuario u ON u.id_usuario = @id_usuario_sesion;
 END
 GO
 
@@ -452,9 +478,46 @@ GO
 ALTER ROLE rol_estudiante ADD MEMBER tecnic_estudiante;
 GO
 
+-- Evitar que los usuarios operativos queden con db_owner por accidente
+USE InstitutoTECNIC;
+GO
+IF IS_ROLEMEMBER('db_owner', 'tecnic_profesor') = 1
+    ALTER ROLE db_owner DROP MEMBER tecnic_profesor;
+GO
+IF IS_ROLEMEMBER('db_owner', 'tecnic_estudiante') = 1
+    ALTER ROLE db_owner DROP MEMBER tecnic_estudiante;
+GO
+
 USE InstitutoTECNIC;
 GO
 GRANT EXECUTE ON SCHEMA::dbo TO rol_administrador;
 GRANT EXECUTE ON sp_ValidarLogin TO rol_profesor, rol_estudiante;
 GRANT EXECUTE ON sp_EstablecerContextoUsuario TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_VerificarSesionActual TO rol_administrador, rol_profesor, rol_estudiante;
+GO
+
+-- Ejecucion explicita por rol, siguiendo el principio de minimo privilegio
+USE InstitutoTECNIC;
+GO
+GRANT EXECUTE ON sp_AsignaturasPorBloque TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_ProfesorDeAsignatura TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_AsignaturasConPrerrequisitos TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_AulasVacias TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_AsignaturasPorCicloCurso TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_HorarioCompleto TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_TutoresPorCurso TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_AsignaturasPorEstudiante TO rol_estudiante;
+GRANT EXECUTE ON sp_NotasFinalesPorEstudiante TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_ResumenNotasEstudiante TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_EstudiantesPorAsignatura TO rol_profesor;
+GRANT EXECUTE ON sp_ResumenAsistenciaEstudiante TO rol_profesor;
+GRANT EXECUTE ON sp_AsignaturaProfesor_ConsultarAntiguedad TO rol_profesor;
+GRANT EXECUTE ON sp_ProcesoMatricula_EstudianteInscribir TO rol_estudiante;
+GRANT EXECUTE ON sp_ProcesoMatricula_ProfesorEvaluarEstudiante TO rol_profesor;
+GRANT EXECUTE ON sp_NotaFinal_Insertar TO rol_profesor;
+GRANT EXECUTE ON sp_NotaFinal_Actualizar TO rol_profesor;
+GRANT EXECUTE ON sp_NotaFinal_Obtener TO rol_profesor, rol_estudiante;
+GRANT EXECUTE ON sp_Asistencia_Insertar TO rol_profesor;
+GRANT EXECUTE ON sp_Asistencia_Actualizar TO rol_profesor;
+GRANT EXECUTE ON sp_Asistencia_Obtener TO rol_profesor;
 GO

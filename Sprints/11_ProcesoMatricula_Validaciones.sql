@@ -1,14 +1,21 @@
 /* ============================================================================
    PROYECTO: INSTITUTO TECNICO "TECNIC"   -  ARCHIVO 11/11
    PROCESO DE MATRICULA (VALIDACIONES)
+   ============================================================================
+   Requiere ejecutar antes: 1, 2, 3, 4, 5, 6 y 10
+   Estos casos deben generar errores controlados.
    ============================================================================ */
 
+-- Administrador: intentar ofertar una asignatura invalida
 USE InstitutoTECNIC;
 GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'admin', @contrasena = 'Admin#2026';
+EXECUTE AS USER = 'tecnic_admin';
 GO
-
-USE InstitutoTECNIC;
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'admin',
+    @contrasena = 'Admin#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_AdminOfertarAsignatura
     @codigo_oficial = 'DEMO-ERR-01',
@@ -20,13 +27,19 @@ EXEC sp_ProcesoMatricula_AdminOfertarAsignatura
     @id_curso = 7,
     @codigo_interno_ciclo = 4;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'yeisson.villalobos', @contrasena = 'Estu#2026';
+REVERT;
 GO
 
+-- Estudiante: intentar matricular sin finalizar matricula activa anterior
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_estudiante';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'yeisson.villalobos',
+    @contrasena = 'Estu#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_EstudianteInscribir
     @id_estudiante = 5,
@@ -36,13 +49,19 @@ EXEC sp_ProcesoMatricula_EstudianteInscribir
     @id_periodo = 7,
     @finalizar_anterior = 0;
 GO
-
-USE InstitutoTECNIC;
-GO
-EXEC sp_EstablecerContextoUsuario @nombre_usuario = 'sofia.mora', @contrasena = 'Profe#2026';
+REVERT;
 GO
 
+-- Profesor: intentar aprobar con nota menor a 70
 USE InstitutoTECNIC;
+GO
+EXECUTE AS USER = 'tecnic_profesor';
+GO
+EXEC sp_EstablecerContextoUsuario
+    @nombre_usuario = 'sofia.mora',
+    @contrasena = 'Profe#2026';
+GO
+EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_ProfesorEvaluarEstudiante
     @id_estudiante = 5,
@@ -50,4 +69,6 @@ EXEC sp_ProcesoMatricula_ProfesorEvaluarEstudiante
     @id_periodo = 7,
     @promedio_final = 65.00,
     @estado_nota = 'Aprobado';
+GO
+REVERT;
 GO
