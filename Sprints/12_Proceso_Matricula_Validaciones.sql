@@ -15,7 +15,7 @@ GO
 EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_AdminOfertarAsignatura
-    @codigo_oficial = 'DEMO-ERR-01',
+    @codigo_oficial = 'DEMO-01',
     @nombre_asignatura = 'Asignatura Invalida',
     @duracion_horas_asignatura = 0,
     @id_aula = 3,
@@ -27,7 +27,7 @@ GO
 REVERT;
 GO
 
--- Estudiante: intentar matricular sin finalizar matricula activa anterior
+-- Estudiante: intentar matricular a alguien mas
 USE InstitutoTECNIC;
 GO
 EXECUTE AS USER = 'tecnic_estudiante';
@@ -39,7 +39,7 @@ GO
 EXEC sp_VerificarSesionActual;
 GO
 EXEC sp_ProcesoMatricula_EstudianteInscribir
-    @id_estudiante = 5,
+    @id_estudiante = 1,
     @id_sede = 1,
     @fecha_matricula = '2026-02-01',
     @codigo_oficial = 'DEMO-401',

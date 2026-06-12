@@ -40,7 +40,7 @@ BEGIN
     INNER JOIN BloqueHorario bh ON bh.num_bloque = h.num_bloque
     INNER JOIN HorarioAsignatura ha ON h.id_horario = ha.id_horario
     INNER JOIN Asignatura a ON ha.codigo_interno_asignatura = a.codigo_interno_asignatura
-    INNER JOIN AsignaturaProfesor ap ON ap.codigo_interno_asignatura = a.codigo_interno_asignatura
+    INNER JOIN ProfesorAsignatura ap ON ap.codigo_interno_asignatura = a.codigo_interno_asignatura
     INNER JOIN Periodo pe ON pe.id_periodo = a.id_periodo
     INNER JOIN Profesor p ON ap.codigo_interno_profesor = p.codigo_interno_profesor
     INNER JOIN Aula au ON a.id_aula = au.id_aula
@@ -65,7 +65,7 @@ BEGIN
         RETURN;
     END
     IF NOT EXISTS (
-        SELECT 1 FROM AsignaturaProfesor
+        SELECT 1 FROM ProfesorAsignatura
         WHERE codigo_interno_asignatura = @codigo_interno_asignatura
     )
     BEGIN
@@ -75,9 +75,9 @@ BEGIN
     SELECT a.nombre_asignatura AS asignatura,
            p.codigo_interno_profesor, p.nombre_profesor, p.apellido1_profesor,
            u.correo_usuario, p.telefono_profesor,
-           ap.fecha_inicio_imparticion, ap.fecha_fin_imparticion
+           ap.fecha_inicio_imparticion_profe, ap.fecha_fin_imparticion_profe
     FROM Asignatura a
-    JOIN AsignaturaProfesor ap ON ap.codigo_interno_asignatura = a.codigo_interno_asignatura
+    JOIN ProfesorAsignatura ap ON ap.codigo_interno_asignatura = a.codigo_interno_asignatura
     JOIN Profesor p ON p.codigo_interno_profesor = ap.codigo_interno_profesor
     LEFT JOIN Usuario u ON p.id_usuario = u.id_usuario
     WHERE a.codigo_interno_asignatura = @codigo_interno_asignatura;
@@ -177,7 +177,7 @@ BEGIN
     INNER JOIN Curso cu ON cu.id_curso = acur.id_curso
     INNER JOIN Ciclo ci ON ci.codigo_interno_ciclo = acic.codigo_interno_ciclo
                         AND ci.codigo_interno_ciclo = cu.codigo_interno_ciclo
-    INNER JOIN AsignaturaProfesor ap ON ap.codigo_interno_asignatura = a.codigo_interno_asignatura
+    INNER JOIN ProfesorAsignatura ap ON ap.codigo_interno_asignatura = a.codigo_interno_asignatura
     INNER JOIN Profesor p ON p.codigo_interno_profesor = ap.codigo_interno_profesor
     WHERE ci.codigo_interno_ciclo = @codigo_interno_ciclo
       AND (@id_curso IS NULL OR cu.id_curso = @id_curso)
@@ -205,7 +205,7 @@ BEGIN
     JOIN BloqueHorario bh ON bh.num_bloque = h.num_bloque
     JOIN HorarioAsignatura ha ON h.id_horario = ha.id_horario
     JOIN Asignatura a ON ha.codigo_interno_asignatura = a.codigo_interno_asignatura
-    JOIN AsignaturaProfesor pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
+    JOIN ProfesorAsignatura pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
     JOIN Periodo pe ON pe.id_periodo = a.id_periodo
     JOIN Profesor p ON pa.codigo_interno_profesor = p.codigo_interno_profesor
     JOIN Aula au ON a.id_aula = au.id_aula
@@ -359,7 +359,7 @@ BEGIN
            au.nombre_aula AS aula
     FROM Asignatura a
     JOIN Periodo pe ON pe.id_periodo = a.id_periodo
-    JOIN AsignaturaProfesor pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
+    JOIN ProfesorAsignatura pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
     JOIN Profesor p ON p.codigo_interno_profesor = pa.codigo_interno_profesor
     JOIN Aula au ON au.id_aula = a.id_aula
     WHERE a.id_periodo = @id_periodo
@@ -464,7 +464,7 @@ GO
 --Consultar la antiguedad de un profesor y su asignatura
 USE InstitutoTECNIC;
 GO
-CREATE PROCEDURE sp_Join_Inner_AsignaturaProfesor
+CREATE PROCEDURE sp_Join_Inner_ProfesorAsignatura
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -481,12 +481,12 @@ BEGIN
            dbo.fn_AntiguedadTexto(d.anios, d.meses, d.dias, d.horas) AS antiguedad_texto,
            ap.antiguedad_profesor AS antiguedad_anios_registrada
     FROM Profesor p
-    INNER JOIN AsignaturaProfesor ap ON ap.codigo_interno_profesor = p.codigo_interno_profesor
+    INNER JOIN ProfesorAsignatura ap ON ap.codigo_interno_profesor = p.codigo_interno_profesor
     INNER JOIN Asignatura a ON a.codigo_interno_asignatura = ap.codigo_interno_asignatura
     CROSS APPLY dbo.fn_AntiguedadProfesorDesglose(
         p.codigo_interno_profesor, a.codigo_oficial, @hoy
     ) d
-    WHERE ap.fecha_fin_imparticion IS NULL
+    WHERE ap.fecha_fin_imparticion_profe IS NULL
     ORDER BY p.nombre_profesor;
 END
 GO

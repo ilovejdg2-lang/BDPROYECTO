@@ -3,7 +3,6 @@
    CREACION DE BASE, FILEGROUPS
    ============================================================================ */
 
-
 --  crear la base (primary + log)
 USE master;
 GO
@@ -43,7 +42,7 @@ ALTER DATABASE InstitutoTECNIC ADD FILE
   SIZE = 1024MB, MAXSIZE = 12GB, FILEGROWTH = 512MB ) TO FILEGROUP FG_Operaciones;
 GO
 
---fg_seguridad para las tablas de seguridad como usuario, bitacora, etc.
+--fg_seguridad para las tablas de seguridad como usuario, bitacora.
 USE master;
 GO
 ALTER DATABASE InstitutoTECNIC ADD FILEGROUP FG_Seguridad;

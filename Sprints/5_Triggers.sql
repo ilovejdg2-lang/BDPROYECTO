@@ -261,33 +261,33 @@ GO
 
 -- AUDITORIA ASIGNATURAPROFESOR
 
---Registrar insercion en AsignaturaProfesor
+--Registrar insercion en ProfesorAsignatura
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_AsignaturaProfesor_Insert ON AsignaturaProfesor AFTER INSERT AS
+CREATE TRIGGER tr_ProfesorAsignatura_Insert ON ProfesorAsignatura AFTER INSERT AS
 BEGIN
     SET NOCOUNT ON;
-    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'AsignaturaProfesor';
+    EXEC dbo.sp_Bitacora_Registrar 'INSERT', 'ProfesorAsignatura';
 END
 GO
 
---Registrar actualizacion en AsignaturaProfesor
+--Registrar actualizacion en ProfesorAsignatura
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_AsignaturaProfesor_Update ON AsignaturaProfesor AFTER UPDATE AS
+CREATE TRIGGER tr_ProfesorAsignatura_Update ON ProfesorAsignatura AFTER UPDATE AS
 BEGIN
     SET NOCOUNT ON;
-    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'AsignaturaProfesor';
+    EXEC dbo.sp_Bitacora_Registrar 'UPDATE', 'ProfesorAsignatura';
 END
 GO
 
---Registrar eliminacion en AsignaturaProfesor
+--Registrar eliminacion en ProfesorAsignatura
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_AsignaturaProfesor_Delete ON AsignaturaProfesor AFTER DELETE AS
+CREATE TRIGGER tr_ProfesorAsignatura_Delete ON ProfesorAsignatura AFTER DELETE AS
 BEGIN
     SET NOCOUNT ON;
-    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'AsignaturaProfesor';
+    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'ProfesorAsignatura';
 END
 GO
 
@@ -839,12 +839,12 @@ BEGIN
         SELECT 1
         FROM inserted i
         JOIN Asignatura a1 ON a1.codigo_interno_asignatura = i.codigo_interno_asignatura
-        JOIN AsignaturaProfesor pa1 ON pa1.codigo_interno_asignatura = a1.codigo_interno_asignatura
+        JOIN ProfesorAsignatura pa1 ON pa1.codigo_interno_asignatura = a1.codigo_interno_asignatura
         JOIN Horario h1 ON h1.id_horario = i.id_horario
         JOIN HorarioAsignatura ha ON ha.id_horario_asignatura <> i.id_horario_asignatura
         JOIN Horario h2 ON h2.id_horario = ha.id_horario
         JOIN Asignatura a2 ON a2.codigo_interno_asignatura = ha.codigo_interno_asignatura
-        JOIN AsignaturaProfesor pa2 ON pa2.codigo_interno_asignatura = a2.codigo_interno_asignatura
+        JOIN ProfesorAsignatura pa2 ON pa2.codigo_interno_asignatura = a2.codigo_interno_asignatura
         WHERE pa1.codigo_interno_profesor = pa2.codigo_interno_profesor
           AND h1.dia_semana = h2.dia_semana
           AND h1.num_bloque = h2.num_bloque
@@ -874,7 +874,7 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM deleted d
-        JOIN AsignaturaProfesor pa ON pa.codigo_interno_profesor = d.codigo_interno_profesor
+        JOIN ProfesorAsignatura pa ON pa.codigo_interno_profesor = d.codigo_interno_profesor
     )
     BEGIN
         RAISERROR(N'No se puede eliminar el profesor porque tiene asignaturas asignadas.', 16, 1);
@@ -1063,10 +1063,10 @@ BEGIN
         SELECT 1
         FROM inserted i
         JOIN Asignatura a ON a.codigo_interno_asignatura = i.codigo_interno_asignatura
-        JOIN AsignaturaProfesor pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
+        JOIN ProfesorAsignatura pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
         JOIN Matricula m ON m.id_matricula = i.id_matricula
-        WHERE pa.fecha_fin_imparticion IS NOT NULL
-          AND YEAR(pa.fecha_fin_imparticion) < YEAR(m.fecha_matricula)
+        WHERE pa.fecha_fin_imparticion_profe IS NOT NULL
+          AND YEAR(pa.fecha_fin_imparticion_profe) < YEAR(m.fecha_matricula)
     )
     BEGIN
         RAISERROR(N'La fecha fin de imparticion del profesor es anterior al annio de la matricula.', 16, 1);
@@ -1269,8 +1269,8 @@ GO
 --Impedir eliminar profesor de asignatura
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor
-ON AsignaturaProfesor INSTEAD OF DELETE AS
+CREATE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor
+ON ProfesorAsignatura INSTEAD OF DELETE AS
 BEGIN
     SET NOCOUNT ON;
     IF EXISTS (
@@ -1282,16 +1282,16 @@ BEGIN
         RAISERROR(N'No se puede eliminar el profesor asignado: toda asignatura debe tener un profesor.', 16, 1);
         RETURN;
     END
-    DELETE FROM AsignaturaProfesor
-    WHERE id_asignatura_profesor IN (SELECT id_asignatura_profesor FROM deleted);
+    DELETE FROM ProfesorAsignatura
+    WHERE id_profesor_asignatura IN (SELECT id_profesor_asignatura FROM deleted);
 END
 GO
 
 --Actualizar antiguedad del profesor por fechas
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_AsignaturaProfesor_ActualizarAntiguedad
-ON AsignaturaProfesor
+CREATE TRIGGER tr_ProfesorAsignatura_ActualizarAntiguedad
+ON ProfesorAsignatura
 AFTER INSERT, UPDATE
 AS
 BEGIN
@@ -1303,7 +1303,7 @@ BEGIN
     IF NOT EXISTS (SELECT 1 FROM inserted)
         RETURN;
 
-    IF UPDATE(fecha_inicio_imparticion) OR UPDATE(fecha_fin_imparticion) OR NOT EXISTS (SELECT 1 FROM deleted)
+    IF UPDATE(fecha_inicio_imparticion_profe) OR UPDATE(fecha_fin_imparticion_profe) OR NOT EXISTS (SELECT 1 FROM deleted)
     BEGIN
         DECLARE @ProfesorOficial TABLE
         (
@@ -1314,7 +1314,7 @@ BEGIN
         INSERT INTO @ProfesorOficial (codigo_interno_profesor, codigo_oficial)
         SELECT DISTINCT pa.codigo_interno_profesor, a.codigo_oficial
         FROM inserted i
-        INNER JOIN AsignaturaProfesor pa ON pa.id_asignatura_profesor = i.id_asignatura_profesor
+        INNER JOIN ProfesorAsignatura pa ON pa.id_profesor_asignatura = i.id_profesor_asignatura
         INNER JOIN Asignatura a ON a.codigo_interno_asignatura = pa.codigo_interno_asignatura;
 
         DECLARE @codigo_interno_profesor INT;
@@ -1327,7 +1327,7 @@ BEGIN
 
         WHILE @@FETCH_STATUS = 0
         BEGIN
-            EXEC sp_AsignaturaProfesor_ActualizarAntiguedad
+            EXEC sp_ProfesorAsignatura_ActualizarAntiguedad
                 @codigo_interno_profesor = @codigo_interno_profesor,
                 @codigo_oficial = @codigo_oficial;
 
@@ -1525,10 +1525,10 @@ BEGIN
     END
 
     EXEC sp_set_session_context @key = N'eliminando_asignatura', @value = 1;
-    DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
-    DELETE FROM AsignaturaProfesor
+    DISABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura;
+    DELETE FROM ProfesorAsignatura
     WHERE codigo_interno_asignatura IN (SELECT codigo_interno_asignatura FROM deleted);
-    ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor;
+    ENABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura;
     DELETE FROM Asignatura
     WHERE codigo_interno_asignatura IN (SELECT codigo_interno_asignatura FROM deleted);
     EXEC sp_set_session_context @key = N'eliminando_asignatura', @value = NULL;

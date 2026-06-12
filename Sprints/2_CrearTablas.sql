@@ -159,24 +159,24 @@ CREATE TABLE Asignatura
 ) ON FG_Academico;
 GO
 
--- TABLA: AsignaturaProfesor (FG_Academico)
+-- TABLA: ProfesorAsignatura (FG_Academico)
 USE InstitutoTECNIC;
 GO
-CREATE TABLE AsignaturaProfesor
+CREATE TABLE ProfesorAsignatura
 (
-    id_asignatura_profesor    INT  IDENTITY(1,1) NOT NULL,
-    codigo_interno_profesor   INT  NOT NULL,
-    codigo_interno_asignatura INT  NOT NULL,
-    antiguedad_profesor       INT  NULL, 
-    fecha_inicio_imparticion  DATE NULL,
-    fecha_fin_imparticion     DATE NULL,
-    CONSTRAINT PK_AsignaturaProfesor  PRIMARY KEY (id_asignatura_profesor),
-    CONSTRAINT FK_AP_Profesor         FOREIGN KEY (codigo_interno_profesor) REFERENCES Profesor(codigo_interno_profesor),
-    CONSTRAINT FK_AP_Asignatura       FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
-    CONSTRAINT UQ_AP_par              UNIQUE (codigo_interno_profesor, codigo_interno_asignatura),
-    CONSTRAINT UQ_AP_asignatura       UNIQUE (codigo_interno_asignatura),
-    CONSTRAINT CK_AP_fechas           CHECK (fecha_fin_imparticion IS NULL OR fecha_inicio_imparticion IS NULL OR fecha_fin_imparticion >= fecha_inicio_imparticion),
-    CONSTRAINT CK_AP_antiguedad       CHECK (antiguedad_profesor IS NULL OR antiguedad_profesor >= 0)
+    id_profesor_asignatura         INT  IDENTITY(1,1) NOT NULL,
+    codigo_interno_profesor        INT  NOT NULL,
+    codigo_interno_asignatura      INT  NOT NULL,
+    antiguedad_profesor            INT  NULL,
+    fecha_inicio_imparticion_profe DATE NULL,
+    fecha_fin_imparticion_profe    DATE NULL,
+    CONSTRAINT PK_ProfesorAsignatura PRIMARY KEY (id_profesor_asignatura),
+    CONSTRAINT FK_PA_Profesor        FOREIGN KEY (codigo_interno_profesor) REFERENCES Profesor(codigo_interno_profesor),
+    CONSTRAINT FK_PA_Asignatura      FOREIGN KEY (codigo_interno_asignatura) REFERENCES Asignatura(codigo_interno_asignatura),
+    CONSTRAINT UQ_PA_par             UNIQUE (codigo_interno_profesor, codigo_interno_asignatura),
+    CONSTRAINT UQ_PA_asignatura      UNIQUE (codigo_interno_asignatura),
+    CONSTRAINT CK_PA_fechas          CHECK (fecha_fin_imparticion_profe IS NULL OR fecha_inicio_imparticion_profe IS NULL OR fecha_fin_imparticion_profe >= fecha_inicio_imparticion_profe),
+    CONSTRAINT CK_PA_antiguedad      CHECK (antiguedad_profesor IS NULL OR antiguedad_profesor >= 0)
 ) ON FG_Academico;
 GO
 
