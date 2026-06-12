@@ -376,7 +376,7 @@ BEGIN
         RAISERROR('Error: El profesor con ID %d no existe.', 16, 1, @codigo_interno_profesor);
         RETURN;
     END
-    IF EXISTS (SELECT 1 FROM AsignaturaProfesor WHERE codigo_interno_profesor = @codigo_interno_profesor)
+    IF EXISTS (SELECT 1 FROM ProfesorAsignatura WHERE codigo_interno_profesor = @codigo_interno_profesor)
     BEGIN
         RAISERROR('Error: No se puede eliminar el profesor porque tiene asignaturas asignadas.', 16, 1);
         RETURN;
@@ -678,45 +678,45 @@ BEGIN
 
     SELECT @meses_totales = ISNULL(SUM(
         dbo.fn_MesesImparticion(
-            ap.fecha_inicio_imparticion,
-            ap.fecha_fin_imparticion,
+            ap.fecha_inicio_imparticion_profe,
+            ap.fecha_fin_imparticion_profe,
             @fecha_corte
         )
     ), 0)
-    FROM AsignaturaProfesor ap
+    FROM ProfesorAsignatura ap
     INNER JOIN Asignatura a ON a.codigo_interno_asignatura = ap.codigo_interno_asignatura
     WHERE ap.codigo_interno_profesor = @codigo_interno_profesor
       AND a.codigo_oficial = @codigo_oficial
-      AND ap.fecha_inicio_imparticion IS NOT NULL
-      AND ap.fecha_inicio_imparticion <= @fecha_corte;
+      AND ap.fecha_inicio_imparticion_profe IS NOT NULL
+      AND ap.fecha_inicio_imparticion_profe <= @fecha_corte;
 
     SELECT @dias_restantes = ISNULL(SUM(
         dbo.fn_DiasImparticionActiva(
-            ap.fecha_inicio_imparticion,
-            ap.fecha_fin_imparticion,
+            ap.fecha_inicio_imparticion_profe,
+            ap.fecha_fin_imparticion_profe,
             @fecha_corte
         )
     ), 0)
-    FROM AsignaturaProfesor ap
+    FROM ProfesorAsignatura ap
     INNER JOIN Asignatura a ON a.codigo_interno_asignatura = ap.codigo_interno_asignatura
     WHERE ap.codigo_interno_profesor = @codigo_interno_profesor
       AND a.codigo_oficial = @codigo_oficial
-      AND ap.fecha_inicio_imparticion IS NOT NULL
-      AND ap.fecha_inicio_imparticion <= @fecha_corte;
+      AND ap.fecha_inicio_imparticion_profe IS NOT NULL
+      AND ap.fecha_inicio_imparticion_profe <= @fecha_corte;
 
     SELECT @horas_restantes = ISNULL(SUM(
         dbo.fn_HorasImparticionActiva(
-            ap.fecha_inicio_imparticion,
-            ap.fecha_fin_imparticion,
+            ap.fecha_inicio_imparticion_profe,
+            ap.fecha_fin_imparticion_profe,
             @ahora
         )
     ), 0)
-    FROM AsignaturaProfesor ap
+    FROM ProfesorAsignatura ap
     INNER JOIN Asignatura a ON a.codigo_interno_asignatura = ap.codigo_interno_asignatura
     WHERE ap.codigo_interno_profesor = @codigo_interno_profesor
       AND a.codigo_oficial = @codigo_oficial
-      AND ap.fecha_inicio_imparticion IS NOT NULL
-      AND ap.fecha_inicio_imparticion <= @fecha_corte;
+      AND ap.fecha_inicio_imparticion_profe IS NOT NULL
+      AND ap.fecha_inicio_imparticion_profe <= @fecha_corte;
 
     INSERT INTO @Desglose (meses_totales, anios, meses, dias, horas)
     VALUES (@meses_totales, @meses_totales / 12, @meses_totales % 12, @dias_restantes, @horas_restantes);
@@ -728,7 +728,7 @@ GO
 --Actualizar antiguedad de profesores en asignaturas
 USE InstitutoTECNIC;
 GO
-CREATE PROCEDURE sp_AsignaturaProfesor_ActualizarAntiguedad
+CREATE PROCEDURE sp_ProfesorAsignatura_ActualizarAntiguedad
     @codigo_interno_profesor INT = NULL,
     @codigo_oficial          VARCHAR(20) = NULL
 AS
@@ -738,50 +738,50 @@ BEGIN
     DECLARE @hoy DATE = CAST(GETDATE() AS DATE);
 
     ;WITH Asignaciones AS (
-        SELECT pa.id_asignatura_profesor,
+        SELECT pa.id_profesor_asignatura,
                pa.codigo_interno_profesor,
                a.codigo_oficial,
-               COALESCE(pa.fecha_fin_imparticion, @hoy) AS fecha_corte_fila
-        FROM AsignaturaProfesor pa
+               COALESCE(pa.fecha_fin_imparticion_profe, @hoy) AS fecha_corte_fila
+        FROM ProfesorAsignatura pa
         INNER JOIN Asignatura a ON a.codigo_interno_asignatura = pa.codigo_interno_asignatura
         WHERE (@codigo_interno_profesor IS NULL OR pa.codigo_interno_profesor = @codigo_interno_profesor)
           AND (@codigo_oficial IS NULL OR a.codigo_oficial = @codigo_oficial)
     ),
     MesesPorFila AS (
-        SELECT af.id_asignatura_profesor,
+        SELECT af.id_profesor_asignatura,
                MesesTotal = SUM(
                    dbo.fn_MesesImparticion(
-                       pa2.fecha_inicio_imparticion,
-                       pa2.fecha_fin_imparticion,
+                       pa2.fecha_inicio_imparticion_profe,
+                       pa2.fecha_fin_imparticion_profe,
                        af.fecha_corte_fila
                    )
                )
         FROM Asignaciones af
-        INNER JOIN AsignaturaProfesor pa2
+        INNER JOIN ProfesorAsignatura pa2
             ON pa2.codigo_interno_profesor = af.codigo_interno_profesor
         INNER JOIN Asignatura a2
             ON a2.codigo_interno_asignatura = pa2.codigo_interno_asignatura
            AND a2.codigo_oficial = af.codigo_oficial
-        WHERE pa2.fecha_inicio_imparticion IS NOT NULL
-          AND pa2.fecha_inicio_imparticion <= af.fecha_corte_fila
-        GROUP BY af.id_asignatura_profesor
+        WHERE pa2.fecha_inicio_imparticion_profe IS NOT NULL
+          AND pa2.fecha_inicio_imparticion_profe <= af.fecha_corte_fila
+        GROUP BY af.id_profesor_asignatura
     )
     UPDATE pa
     SET antiguedad_profesor = m.MesesTotal / 12
-    FROM AsignaturaProfesor pa
-    INNER JOIN MesesPorFila m ON m.id_asignatura_profesor = pa.id_asignatura_profesor;
+    FROM ProfesorAsignatura pa
+    INNER JOIN MesesPorFila m ON m.id_profesor_asignatura = pa.id_profesor_asignatura;
 END
 GO
 
 --Asignar una asignatura a un profesor
 USE InstitutoTECNIC;
 GO
-CREATE PROCEDURE sp_AsignaturaProfesor_Asignar
+CREATE PROCEDURE sp_ProfesorAsignatura_Asignar
     @codigo_interno_profesor   INT,
     @codigo_interno_asignatura INT,
     @antiguedad_profesor       INT = NULL,
-    @fecha_inicio_imparticion  DATE = NULL,
-    @fecha_fin_imparticion     DATE = NULL
+    @fecha_inicio_imparticion_profe  DATE = NULL,
+    @fecha_fin_imparticion_profe     DATE = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -797,7 +797,7 @@ BEGIN
     END
 
     IF EXISTS (
-        SELECT 1 FROM AsignaturaProfesor
+        SELECT 1 FROM ProfesorAsignatura
         WHERE codigo_interno_asignatura = @codigo_interno_asignatura
     )
     BEGIN
@@ -809,100 +809,100 @@ BEGIN
     FROM Asignatura
     WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
 
-    INSERT INTO AsignaturaProfesor (codigo_interno_profesor, codigo_interno_asignatura,
-                                    antiguedad_profesor, fecha_inicio_imparticion, fecha_fin_imparticion)
+    INSERT INTO ProfesorAsignatura (codigo_interno_profesor, codigo_interno_asignatura,
+                                    antiguedad_profesor, fecha_inicio_imparticion_profe, fecha_fin_imparticion_profe)
     VALUES (@codigo_interno_profesor, @codigo_interno_asignatura,
-            ISNULL(@antiguedad_profesor, 0), @fecha_inicio_imparticion, @fecha_fin_imparticion);
+            ISNULL(@antiguedad_profesor, 0), @fecha_inicio_imparticion_profe, @fecha_fin_imparticion_profe);
 
     SET @id_nuevo = SCOPE_IDENTITY();
 
-    EXEC sp_AsignaturaProfesor_ActualizarAntiguedad
+    EXEC sp_ProfesorAsignatura_ActualizarAntiguedad
         @codigo_interno_profesor = @codigo_interno_profesor,
         @codigo_oficial = @codigo_oficial;
 
-    SELECT @id_nuevo AS id_asignatura_profesor_creado;
+    SELECT @id_nuevo AS id_profesor_asignatura_creado;
 END
 GO
 
 --Obtener asignacion profesor-asignatura
 USE InstitutoTECNIC;
 GO
-CREATE PROCEDURE sp_AsignaturaProfesor_Obtener
-    @id_asignatura_profesor INT
+CREATE PROCEDURE sp_ProfesorAsignatura_Obtener
+    @id_profesor_asignatura INT
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM AsignaturaProfesor WHERE id_asignatura_profesor = @id_asignatura_profesor)
+    IF NOT EXISTS (SELECT 1 FROM ProfesorAsignatura WHERE id_profesor_asignatura = @id_profesor_asignatura)
     BEGIN
-        RAISERROR('Error: La asignacion profesor-asignatura con ID %d no existe.', 16, 1, @id_asignatura_profesor);
+        RAISERROR('Error: La asignacion profesor-asignatura con ID %d no existe.', 16, 1, @id_profesor_asignatura);
         RETURN;
     END
-    SELECT pa.id_asignatura_profesor, pa.codigo_interno_profesor, pa.codigo_interno_asignatura,
-           pa.antiguedad_profesor, pa.fecha_inicio_imparticion, pa.fecha_fin_imparticion,
+    SELECT pa.id_profesor_asignatura, pa.codigo_interno_profesor, pa.codigo_interno_asignatura,
+           pa.antiguedad_profesor, pa.fecha_inicio_imparticion_profe, pa.fecha_fin_imparticion_profe,
            p.nombre_profesor, p.apellido1_profesor, a.nombre_asignatura, a.codigo_oficial
-    FROM AsignaturaProfesor pa
+    FROM ProfesorAsignatura pa
     JOIN Profesor p ON p.codigo_interno_profesor = pa.codigo_interno_profesor
     JOIN Asignatura a ON a.codigo_interno_asignatura = pa.codigo_interno_asignatura
-    WHERE pa.id_asignatura_profesor = @id_asignatura_profesor;
+    WHERE pa.id_profesor_asignatura = @id_profesor_asignatura;
 END
 GO
 
 --Actualizar asignacion profesor-asignatura
 USE InstitutoTECNIC;
 GO
-CREATE PROCEDURE sp_AsignaturaProfesor_Actualizar
-    @id_asignatura_profesor   INT,
-    @fecha_inicio_imparticion DATE = NULL,
-    @fecha_fin_imparticion    DATE = NULL
+CREATE PROCEDURE sp_ProfesorAsignatura_Actualizar
+    @id_profesor_asignatura   INT,
+    @fecha_inicio_imparticion_profe DATE = NULL,
+    @fecha_fin_imparticion_profe    DATE = NULL
 AS
 BEGIN
     SET NOCOUNT ON;
-    IF NOT EXISTS (SELECT 1 FROM AsignaturaProfesor WHERE id_asignatura_profesor = @id_asignatura_profesor)
+    IF NOT EXISTS (SELECT 1 FROM ProfesorAsignatura WHERE id_profesor_asignatura = @id_profesor_asignatura)
     BEGIN
-        RAISERROR('Error: La asignacion profesor-asignatura con ID %d no existe.', 16, 1, @id_asignatura_profesor);
+        RAISERROR('Error: La asignacion profesor-asignatura con ID %d no existe.', 16, 1, @id_profesor_asignatura);
         RETURN;
     END
-    IF @fecha_inicio_imparticion IS NOT NULL AND @fecha_fin_imparticion IS NOT NULL
-       AND @fecha_fin_imparticion < @fecha_inicio_imparticion
+    IF @fecha_inicio_imparticion_profe IS NOT NULL AND @fecha_fin_imparticion_profe IS NOT NULL
+       AND @fecha_fin_imparticion_profe < @fecha_inicio_imparticion_profe
     BEGIN
         RAISERROR('Error: La fecha fin no puede ser anterior a la fecha inicio.', 16, 1);
         RETURN;
     END
-    UPDATE AsignaturaProfesor
-       SET fecha_inicio_imparticion = COALESCE(@fecha_inicio_imparticion, fecha_inicio_imparticion),
-           fecha_fin_imparticion = COALESCE(@fecha_fin_imparticion, fecha_fin_imparticion)
-     WHERE id_asignatura_profesor = @id_asignatura_profesor;
+    UPDATE ProfesorAsignatura
+       SET fecha_inicio_imparticion_profe = COALESCE(@fecha_inicio_imparticion_profe, fecha_inicio_imparticion_profe),
+           fecha_fin_imparticion_profe = COALESCE(@fecha_fin_imparticion_profe, fecha_fin_imparticion_profe)
+     WHERE id_profesor_asignatura = @id_profesor_asignatura;
 END
 GO
 
 --Eliminar asignacion profesor-asignatura
 USE InstitutoTECNIC;
 GO
-CREATE PROCEDURE sp_AsignaturaProfesor_Eliminar
-    @id_asignatura_profesor INT
+CREATE PROCEDURE sp_ProfesorAsignatura_Eliminar
+    @id_profesor_asignatura INT
 AS
 BEGIN
     SET NOCOUNT ON;
     DECLARE @trigger_deshabilitado BIT = 0;
 
-    IF NOT EXISTS (SELECT 1 FROM AsignaturaProfesor WHERE id_asignatura_profesor = @id_asignatura_profesor)
+    IF NOT EXISTS (SELECT 1 FROM ProfesorAsignatura WHERE id_profesor_asignatura = @id_profesor_asignatura)
     BEGIN
-        RAISERROR('Error: La asignacion profesor-asignatura con ID %d no existe.', 16, 1, @id_asignatura_profesor);
+        RAISERROR('Error: La asignacion profesor-asignatura con ID %d no existe.', 16, 1, @id_profesor_asignatura);
         RETURN;
     END
 
     BEGIN TRY
-        EXEC('DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        EXEC('DISABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura');
         SET @trigger_deshabilitado = 1;
 
-        DELETE FROM AsignaturaProfesor WHERE id_asignatura_profesor = @id_asignatura_profesor;
+        DELETE FROM ProfesorAsignatura WHERE id_profesor_asignatura = @id_profesor_asignatura;
 
-        EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        EXEC('ENABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura');
         SET @trigger_deshabilitado = 0;
     END TRY
     BEGIN CATCH
         IF @trigger_deshabilitado = 1
-            EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+            EXEC('ENABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura');
 
         THROW;
     END CATCH
@@ -958,12 +958,12 @@ BEGIN
 
     SET @codigo_interno_asignatura = SCOPE_IDENTITY();
 
-    EXEC sp_AsignaturaProfesor_Asignar
+    EXEC sp_ProfesorAsignatura_Asignar
         @codigo_interno_profesor = @codigo_interno_profesor,
         @codigo_interno_asignatura = @codigo_interno_asignatura,
         @antiguedad_profesor = @antiguedad_profesor,
-        @fecha_inicio_imparticion = @fecha_inicio_imparticion_profe,
-        @fecha_fin_imparticion = @fecha_fin_imparticion_profe;
+        @fecha_inicio_imparticion_profe = @fecha_inicio_imparticion_profe,
+        @fecha_fin_imparticion_profe = @fecha_fin_imparticion_profe;
 
     SELECT @codigo_interno_asignatura AS codigo_interno_asignatura_creado;
 END
@@ -972,7 +972,7 @@ GO
 USE InstitutoTECNIC;
 GO
 --Consultar la antiguedad actual de un profesor
-CREATE PROCEDURE sp_AsignaturaProfesor_AntiguedadActual
+CREATE PROCEDURE sp_ProfesorAsignatura_AntiguedadActual
     @codigo_interno_profesor   INT,
     @codigo_oficial            VARCHAR(20) = NULL,
     @codigo_interno_asignatura INT = NULL
@@ -1029,7 +1029,7 @@ GO
 USE InstitutoTECNIC;
 GO
 --Consultar la antiguedad de una asignatura
-CREATE PROCEDURE sp_AsignaturaProfesor_ConsultarAntiguedad
+CREATE PROCEDURE sp_ProfesorAsignatura_ConsultarAntiguedad
     @codigo_interno_profesor   INT,
     @codigo_oficial            VARCHAR(20) = NULL,
     @codigo_interno_asignatura INT = NULL
@@ -1039,7 +1039,7 @@ BEGIN
 
     DECLARE @hoy DATE = CAST(GETDATE() AS DATE);
 
-    EXEC sp_AsignaturaProfesor_AntiguedadActual
+    EXEC sp_ProfesorAsignatura_AntiguedadActual
         @codigo_interno_profesor = @codigo_interno_profesor,
         @codigo_oficial = @codigo_oficial,
         @codigo_interno_asignatura = @codigo_interno_asignatura;
@@ -1049,34 +1049,34 @@ BEGIN
         FROM Asignatura
         WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
 
-    SELECT pa.id_asignatura_profesor,
+    SELECT pa.id_profesor_asignatura,
            a.codigo_interno_asignatura,
            pe.nombre_periodo,
            pe.annio,
-           pa.fecha_inicio_imparticion,
-           pa.fecha_fin_imparticion,
+           pa.fecha_inicio_imparticion_profe,
+           pa.fecha_fin_imparticion_profe,
            dbo.fn_MesesImparticion(
-               pa.fecha_inicio_imparticion,
-               pa.fecha_fin_imparticion,
-               COALESCE(pa.fecha_fin_imparticion, @hoy)
+               pa.fecha_inicio_imparticion_profe,
+               pa.fecha_fin_imparticion_profe,
+               COALESCE(pa.fecha_fin_imparticion_profe, @hoy)
            ) AS meses_periodo,
            dbo.fn_DiasImparticionActiva(
-               pa.fecha_inicio_imparticion,
-               pa.fecha_fin_imparticion,
+               pa.fecha_inicio_imparticion_profe,
+               pa.fecha_fin_imparticion_profe,
                @hoy
            ) AS dias_periodo_activo,
            dbo.fn_HorasImparticionActiva(
-               pa.fecha_inicio_imparticion,
-               pa.fecha_fin_imparticion,
+               pa.fecha_inicio_imparticion_profe,
+               pa.fecha_fin_imparticion_profe,
                GETDATE()
            ) AS horas_periodo_activo,
            pa.antiguedad_profesor AS antiguedad_anios_registrada
-    FROM AsignaturaProfesor pa
+    FROM ProfesorAsignatura pa
     INNER JOIN Asignatura a ON a.codigo_interno_asignatura = pa.codigo_interno_asignatura
     INNER JOIN Periodo pe ON pe.id_periodo = a.id_periodo
     WHERE pa.codigo_interno_profesor = @codigo_interno_profesor
       AND a.codigo_oficial = @codigo_oficial
-    ORDER BY pa.fecha_inicio_imparticion;
+    ORDER BY pa.fecha_inicio_imparticion_profe;
 END
 GO
 
@@ -1217,7 +1217,7 @@ BEGIN
            a.id_aula, a.id_periodo
     FROM Asignatura a
     JOIN Periodo pe ON pe.id_periodo = a.id_periodo
-    LEFT JOIN AsignaturaProfesor pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
+    LEFT JOIN ProfesorAsignatura pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
     LEFT JOIN Profesor p ON p.codigo_interno_profesor = pa.codigo_interno_profesor
     JOIN Aula au ON a.id_aula = au.id_aula
     WHERE a.codigo_interno_asignatura = @codigo_interno_asignatura;
@@ -1287,18 +1287,18 @@ BEGIN
     END
 
     BEGIN TRY
-        EXEC('DISABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        EXEC('DISABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura');
         SET @trigger_deshabilitado = 1;
 
-        DELETE FROM AsignaturaProfesor WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
+        DELETE FROM ProfesorAsignatura WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
         DELETE FROM Asignatura WHERE codigo_interno_asignatura = @codigo_interno_asignatura;
 
-        EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+        EXEC('ENABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura');
         SET @trigger_deshabilitado = 0;
     END TRY
     BEGIN CATCH
         IF @trigger_deshabilitado = 1
-            EXEC('ENABLE TRIGGER tr_AsignaturaProfesor_NoEliminarProfesor ON AsignaturaProfesor');
+            EXEC('ENABLE TRIGGER tr_ProfesorAsignatura_NoEliminarProfesor ON ProfesorAsignatura');
 
         THROW;
     END CATCH
@@ -2159,11 +2159,11 @@ BEGIN
     IF EXISTS (
         SELECT 1
         FROM Asignatura a
-        JOIN AsignaturaProfesor pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
+        JOIN ProfesorAsignatura pa ON pa.codigo_interno_asignatura = a.codigo_interno_asignatura
         JOIN Matricula m ON m.id_matricula = @id_matricula
         WHERE a.codigo_interno_asignatura = @codigo_interno_asignatura
-          AND pa.fecha_fin_imparticion IS NOT NULL
-          AND YEAR(pa.fecha_fin_imparticion) < YEAR(m.fecha_matricula)
+          AND pa.fecha_fin_imparticion_profe IS NOT NULL
+          AND YEAR(pa.fecha_fin_imparticion_profe) < YEAR(m.fecha_matricula)
     )
     BEGIN
         RAISERROR('Error: La fecha fin de imparticion del profesor es anterior al annio de la matricula.', 16, 1);
@@ -2320,7 +2320,7 @@ BEGIN
 
     IF EXISTS (
         SELECT 1
-        FROM AsignaturaProfesor
+        FROM ProfesorAsignatura
         WHERE codigo_interno_profesor = @codigo_interno_profesor
           AND codigo_interno_asignatura = @codigo_interno_asignatura
     )

@@ -138,7 +138,7 @@ USE InstitutoTECNIC;
 GO
 GRANT SELECT ON Asignatura TO rol_profesor;
 GRANT SELECT ON BloqueHorario TO rol_profesor;
-GRANT SELECT ON AsignaturaProfesor TO rol_profesor;
+GRANT SELECT ON ProfesorAsignatura TO rol_profesor;
 GRANT SELECT ON Horario TO rol_profesor;
 GRANT SELECT ON HorarioAsignatura TO rol_profesor;
 GRANT SELECT ON Estudiante TO rol_profesor;
@@ -154,7 +154,7 @@ USE InstitutoTECNIC;
 GO
 GRANT SELECT ON Asignatura TO rol_estudiante;
 GRANT SELECT ON BloqueHorario TO rol_estudiante;
-GRANT SELECT ON AsignaturaProfesor TO rol_estudiante;
+GRANT SELECT ON ProfesorAsignatura TO rol_estudiante;
 GRANT SELECT ON Horario TO rol_estudiante;
 GRANT SELECT ON HorarioAsignatura TO rol_estudiante;
 GRANT SELECT ON NotaFinal TO rol_estudiante;
@@ -511,7 +511,7 @@ GRANT EXECUTE ON sp_NotasFinalesPorEstudiante TO rol_profesor, rol_estudiante;
 GRANT EXECUTE ON sp_ResumenNotasEstudiante TO rol_profesor, rol_estudiante;
 GRANT EXECUTE ON sp_EstudiantesPorAsignatura TO rol_profesor;
 GRANT EXECUTE ON sp_ResumenAsistenciaEstudiante TO rol_profesor;
-GRANT EXECUTE ON sp_AsignaturaProfesor_ConsultarAntiguedad TO rol_profesor;
+GRANT EXECUTE ON sp_ProfesorAsignatura_ConsultarAntiguedad TO rol_profesor;
 GRANT EXECUTE ON sp_ProcesoMatricula_EstudianteInscribir TO rol_estudiante;
 GRANT EXECUTE ON sp_ProcesoMatricula_ProfesorEvaluarEstudiante TO rol_profesor;
 GRANT EXECUTE ON sp_NotaFinal_Insertar TO rol_profesor;

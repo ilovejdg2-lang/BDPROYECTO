@@ -524,5 +524,5 @@ GO
 -- RECALCULAR ANTIGUEDAD PROFESOR Y ASIGNATURA
 USE InstitutoTECNIC;
 GO
-EXEC sp_AsignaturaProfesor_ActualizarAntiguedad;
+EXEC sp_ProfesorAsignatura_ActualizarAntiguedad;
 GO

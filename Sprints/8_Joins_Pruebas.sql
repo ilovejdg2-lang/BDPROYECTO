@@ -95,13 +95,13 @@ GO
 -- Antiguedad actual en anos, meses y dias + detalle historico por cada semestre impartido
 USE InstitutoTECNIC;
 GO
-EXEC sp_AsignaturaProfesor_ConsultarAntiguedad @codigo_interno_profesor = 4, @codigo_oficial = 'CON-101';
+EXEC sp_ProfesorAsignatura_ConsultarAntiguedad @codigo_interno_profesor = 4, @codigo_oficial = 'CON-101';
 GO
 
 -- INNER JOIN: profesores con asignaturas vigentes (sin fecha_fin) y su antiguedad
 USE InstitutoTECNIC;
 GO
-EXEC sp_Join_Inner_AsignaturaProfesor;
+EXEC sp_Join_Inner_ProfesorAsignatura;
 GO
 
 -- LEFT JOIN: todas las asignaturas y, si tiene, sus prerrequisitos
