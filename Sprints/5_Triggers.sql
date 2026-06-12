@@ -1567,29 +1567,17 @@ BEGIN
 END
 GO
 
---Impedir eliminar bloque horario con dependencias
+--Impedir eliminar bloque horario (solo se permite actualizar)
 USE InstitutoTECNIC;
 GO
-CREATE TRIGGER tr_BloqueHorario_NoEliminarConDependencias
+IF OBJECT_ID('tr_BloqueHorario_NoEliminarConDependencias', 'TR') IS NOT NULL
+    DROP TRIGGER tr_BloqueHorario_NoEliminarConDependencias;
+GO
+CREATE TRIGGER tr_BloqueHorario_NoEliminar
 ON BloqueHorario INSTEAD OF DELETE AS
 BEGIN
     SET NOCOUNT ON;
-
-    IF SESSION_CONTEXT(N'eliminando_bloque') = 1
-    BEGIN
-        DELETE b FROM BloqueHorario b INNER JOIN deleted d ON d.num_bloque = b.num_bloque;
-        RETURN;
-    END
-
-    IF EXISTS (SELECT 1 FROM deleted d JOIN Horario h ON h.num_bloque = d.num_bloque)
-    BEGIN
-        RAISERROR(N'No se puede eliminar el bloque porque tiene horarios asociados.', 16, 1);
-        RETURN;
-    END
-
-    EXEC sp_set_session_context @key = N'eliminando_bloque', @value = 1;
-    DELETE FROM BloqueHorario WHERE num_bloque IN (SELECT num_bloque FROM deleted);
-    EXEC sp_set_session_context @key = N'eliminando_bloque', @value = NULL;
+    RAISERROR(N'Error: El bloque horario no se puede eliminar, solo actualizar.', 16, 1);
 END
 GO
 

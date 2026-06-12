@@ -1505,7 +1505,7 @@ BEGIN
 END
 GO
 
---Eliminar un bloque horario
+--Eliminar un bloque horario (no permitido: solo se actualiza)
 USE InstitutoTECNIC;
 GO
 CREATE PROCEDURE sp_BloqueHorario_Eliminar
@@ -1518,12 +1518,7 @@ BEGIN
         RAISERROR('Error: El bloque %d no existe.', 16, 1, @num_bloque);
         RETURN;
     END
-    IF EXISTS (SELECT 1 FROM Horario WHERE num_bloque = @num_bloque)
-    BEGIN
-        RAISERROR('Error: No se puede eliminar el bloque porque tiene horarios asociados.', 16, 1);
-        RETURN;
-    END
-    DELETE FROM BloqueHorario WHERE num_bloque = @num_bloque;
+    RAISERROR('Error: El bloque horario no se puede eliminar, solo actualizar.', 16, 1);
 END
 GO
 
