@@ -313,16 +313,6 @@ BEGIN
 END
 GO
 
---Registrar eliminacion en BloqueHorario
-USE InstitutoTECNIC;
-GO
-CREATE TRIGGER tr_BloqueHorario_Delete ON BloqueHorario AFTER DELETE AS
-BEGIN
-    SET NOCOUNT ON;
-    EXEC dbo.sp_Bitacora_Registrar 'DELETE', 'BloqueHorario';
-END
-GO
-
 -- AUDITORIA HORARIO
 
 --Registrar insercion en Horario
@@ -1569,9 +1559,6 @@ GO
 
 --Impedir eliminar bloque horario (solo se permite actualizar)
 USE InstitutoTECNIC;
-GO
-IF OBJECT_ID('tr_BloqueHorario_NoEliminarConDependencias', 'TR') IS NOT NULL
-    DROP TRIGGER tr_BloqueHorario_NoEliminarConDependencias;
 GO
 CREATE TRIGGER tr_BloqueHorario_NoEliminar
 ON BloqueHorario INSTEAD OF DELETE AS
